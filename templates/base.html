@@ -1,0 +1,36 @@
+{%- extends "bootstrap/base.html" %}
+
+{% block title -%} {% block titleex %}{% endblock %} | SCC IE Office {%- endblock %}
+
+{% import "bootstrap/fixes.html" as fixes %}
+
+{% block metas %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This is the website for IE office in Shoreline CC to manage the adivising queue.">
+<meta name="author" content="RaenonX JELLYCAT">
+{%- endblock %}
+
+{% block head %}
+{{ super() }}
+{{ fixes.ie8() }}
+{{ JSGlue.include() }}
+{% block layout %}{% endblock %}
+<link rel="shortcut icon" href="{{ url_for("static", filename="favicon.ico") }}">
+{% block headex %}{% endblock %}
+{%- endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% block scriptsex %}
+{% endblock %}
+{% endblock %}
+
+{% block styles -%}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for("static", filename="layouts/main.css") }}">
+{% block styleex %}{% endblock %}
+{% endblock %}
+
+{% block navbar %}
+{{ nav.main.render() }}
+{% endblock %}

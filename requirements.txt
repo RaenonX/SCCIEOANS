@@ -1,0 +1,9 @@
+flask-appconfig
+Flask-Bootstrap
+flask-nav
+Flask-JSGlue
+Flask-Mail
+Flask
+pymongo
+dnspython
+requests

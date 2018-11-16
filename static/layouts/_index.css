@@ -1,0 +1,13 @@
+.btn-big {
+    width: 100%;
+    font-size: 36px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-func {
+    height: 150px;
+    line-height: 150px;
+    padding: initial;
+}

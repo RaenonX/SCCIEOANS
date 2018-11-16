@@ -1,0 +1,9 @@
+body {
+    font-family: 'Microsoft JhengHei, Calibri, Roboto';
+    background-color: rgb(244, 255, 255);
+}
+
+.set-center {
+    min-height: 1px;
+    text-align: center;
+}
