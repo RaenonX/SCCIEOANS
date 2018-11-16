@@ -58,5 +58,10 @@ if __name__ == "__main__":
     if os.environ["APP_ROOT_URL"] is None:
         print("Specify environment variable 'APP_ROOT_URL', or some functions will malfunction.")
         
+    if os.environ["PORT"] is None:
+        port = 5000
+    else:
+        port = int(os.environ["PORT"])
+
     app = create_app()
-    app.run(port=os.environ["PORT"], host="0.0.0.0")
+    app.run(port=port, host="0.0.0.0")

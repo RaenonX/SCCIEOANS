@@ -89,10 +89,28 @@ Basically the system will have these databases (Bolded item is the index of the 
     * Scheduled time to meet
     * Scheduled time to end
 
-[This might be deleted if it can connect to the system of the school]
+* Accounts
+	* Identity (Staff/Advisor/Student)
+	* Account ID
+	* Account Password
+	* Account Recovery Email
+	* Student ID (If the identity is student)
+
+[Some of the data fields might be deleted if the system is allowed to connect to the database of the school]
 * Student information
-    *  **Student ID**
-    *  Password (Defined by student)
+    * **Student ID**
+    * Password (Defined by student)
+	* Name
+	* Language
+	* Phone
+		* Phone number
+		* Carrier 
+	* Email
+		* Email address(es)
+	* Notification Preferences
+		* SMS
+		* Email 
+		* Manually Call
 
 **Waiting queue** and the **current running appointment** is cached locally after the meeting record database is updated or the system has rebooted.
 The waiting queue is ctaegorized by the viewing purpose, so **it's not a single line**.
