@@ -50,7 +50,13 @@
     <Compile Include="data\__init__.py" />
     <Compile Include="ex.py" />
     <Compile Include="sandbox.py" />
-    <Compile Include="utils\email\__init__.py" />
+    <Compile Include="utils\mail\flaskmail.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="utils\mail\__init__.py" />
+    <Compile Include="utils\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="blueprints" />
@@ -61,7 +67,7 @@
     <Folder Include="static\scripts\" />
     <Folder Include="templates" />
     <Folder Include="utils\" />
-    <Folder Include="utils\email\" />
+    <Folder Include="utils\mail\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6" />

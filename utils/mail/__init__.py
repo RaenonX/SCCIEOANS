@@ -1,0 +1,1 @@
+from .flaskmail import flaskmail

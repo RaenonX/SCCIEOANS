@@ -5,8 +5,10 @@ from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator, Ra
 nav = Nav()
 
 nav_items = [
-    View("SCC IE Office Queue System", "frontend.index"),
-    View("Student", "frontend.index")
+    View("SCC IE Office Appointment Notifying System", "frontend.index"),
+    View("Student", "frontend.student"),
+    View("Advisor", "frontend.advisor"),
+    View("Staff", "frontend.staff")
     #Subgroup("資料查詢",
     #         View("查詢精靈資料", "frontend.pokemon_profile_index"),
     #         Separator(),
