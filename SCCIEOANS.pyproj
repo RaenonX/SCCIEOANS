@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Procfile" />
+    <Content Include="readme.md" />
     <Content Include="requirements.txt" />
     <Content Include="runtime.txt" />
     <Content Include="static\favicon.ico" />
