@@ -1,0 +1,2 @@
+class DatabaseConfig:
+    SCHEDULED_APPOINTMENT_EXPIRATION_MINS = 10

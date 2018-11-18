@@ -16,4 +16,5 @@ def internal_error(error):
 
 @err.app_errorhandler(400)
 def bad_request(error):
-    return render_template("error/400.html", error=error)
+    flash("400 - Bad Request (From {})".format(request.referrer), category='error')
+    return redirect(url_for("frontend.index"))

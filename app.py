@@ -26,6 +26,10 @@ def create_app(with_error=True, configfile=None):
         app.register_blueprint(blueprints.err)
     app.register_blueprint(blueprints.api)
     app.register_blueprint(blueprints.frontend)
+    app.register_blueprint(blueprints.frontend_student)
+    app.register_blueprint(blueprints.frontend_advisor)
+    app.register_blueprint(blueprints.frontend_staff)
+    app.register_blueprint(blueprints.frontend_user)
     
     # Configure app for flask-mail
     app.config['MAIL_SERVER']='smtp.gmail.com'

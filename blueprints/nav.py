@@ -6,9 +6,9 @@ nav = Nav()
 
 nav_items = [
     View("SCC IE Office Appointment Notifying System", "frontend.index"),
-    View("Student", "frontend.student"),
-    View("Advisor", "frontend.advisor"),
-    View("Staff", "frontend.staff")
+    View("Student", "frontend_student.index"),
+    View("Advisor", "frontend_advisor.index"),
+    View("Staff", "frontend_staff.index")
     #Subgroup("資料查詢",
     #         View("查詢精靈資料", "frontend.pokemon_profile_index"),
     #         Separator(),

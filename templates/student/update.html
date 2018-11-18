@@ -1,0 +1,37 @@
+{%- extends "base.html" %}
+
+{% import "bootstrap/utils.html" as utils %}
+
+{% block layout %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/portal.css') }}">
+{% endblock %}
+
+{% block scriptsex %}
+{%- endblock %}
+
+{% block titleex -%} Student - Update Information {%- endblock %}
+
+{% block content %}
+<div class="container">
+    {%- with messages = get_flashed_messages(with_categories=True) %}
+    {%- if messages %}
+    <div class="row">
+        {{ utils.flashed_messages(messages) }}
+    </div>
+    {%- endif %}
+    {%- endwith %}
+    <div class="row">
+        <div class="col-md-12 set-center" style="margin-bottom: initial">
+            <div class="well">
+                <p class="h1-nbs">SCC IE Office People Calling System - Student - Update Information.</p>
+                <div class="glyphicon glyphicon-circle-arrow-right">
+                    Building.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{%- endblock %}
+
+
+

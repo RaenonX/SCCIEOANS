@@ -34,3 +34,6 @@ class EnumWithName(IntEnum):
     @classmethod
     def get_choices(cls):
         return [(int(s), str(s)) for s in cls]
+
+def none_if_empty_string(s):
+    return None if s == "" else s

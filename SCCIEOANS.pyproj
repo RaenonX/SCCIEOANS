@@ -14,6 +14,7 @@
     <InterpreterId>Global|PythonCore|3.6</InterpreterId>
     <WebBrowserUrl>http://localhost</WebBrowserUrl>
     <PythonWsgiHandler>{StartupModule}.wsgi_app</PythonWsgiHandler>
+    <UseIISExpress>false</UseIISExpress>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -28,13 +29,37 @@
     <Content Include="static\favicon.ico" />
     <Content Include="static\html5shiv.min.js" />
     <Content Include="static\jquery.min.js" />
-    <Content Include="static\layouts\_index.css">
+    <Content Include="static\layouts\portal.css">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="static\layouts\user\register.css">
       <SubType>Code</SubType>
     </Content>
     <Content Include="static\less.min.js" />
     <Content Include="static\layouts\main.css" />
+    <Content Include="static\scripts\user\register.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\advisor\index.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="templates\base.html" />
     <Content Include="templates\index.html" />
+    <Content Include="templates\staff\index.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\student\index.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\student\update.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\user\register.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="TODO.txt">
+      <SubType>Code</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="app.py" />
@@ -42,18 +67,51 @@
     <Compile Include="blueprints\api.py" />
     <Compile Include="blueprints\err.py" />
     <Compile Include="blueprints\frontend.py" />
+    <Compile Include="blueprints\frontend_advisor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="blueprints\frontend_staff.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="blueprints\frontend_student.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="blueprints\frontend_user.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="blueprints\nav.py" />
     <Compile Include="blueprints\_objs.py" />
     <Compile Include="blueprints\__init__.py" />
+    <Compile Include="config.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="data\mongo\accounts.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="data\mongo\lang.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="data\mongo\studentinfo.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="data\mongo\base.py" />
+    <Compile Include="data\mongo\records.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="data\mongo\__init__.py" />
     <Compile Include="data\__init__.py" />
     <Compile Include="ex.py" />
     <Compile Include="sandbox.py" />
+    <Compile Include="templates\student\message.html" />
+    <Compile Include="templates\student\schedule.html" />
+    <Compile Include="templates\student\walkin.html" />
     <Compile Include="utils\mail\flaskmail.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="utils\mail\__init__.py" />
+    <Compile Include="utils\phone.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="utils\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -64,8 +122,14 @@
     <Folder Include="data\mongo" />
     <Folder Include="static" />
     <Folder Include="static\layouts\" />
+    <Folder Include="static\layouts\user\" />
     <Folder Include="static\scripts\" />
+    <Folder Include="static\scripts\user\" />
     <Folder Include="templates" />
+    <Folder Include="templates\advisor\" />
+    <Folder Include="templates\user\" />
+    <Folder Include="templates\staff\" />
+    <Folder Include="templates\student\" />
     <Folder Include="utils\" />
     <Folder Include="utils\mail\" />
   </ItemGroup>
@@ -77,7 +141,13 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>True</UseCustomServer>
           <CustomServerUrl>http://localhost</CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>

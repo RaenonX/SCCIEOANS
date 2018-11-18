@@ -7,3 +7,9 @@ body {
     min-height: 1px;
     text-align: center;
 }
+
+.field-table {
+    border-collapse: separate;
+    border-spacing: 5px 5px;
+    width: 100%;
+}

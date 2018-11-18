@@ -36,14 +36,20 @@ This is a noSQL db, the reason I choose this is because that it can store data w
 
 ## Program Structure
 ### Frontend
+#### Cookie
+The program will create a session (cookie) locally to record:
+* Login key - This will be generated/refreshed each time the user logged in
+
+#### Endpoints
 We are going to create a few endpoints for different usage (The name and the structure of the endpoints are subject to change):
 * Main Page
     * [/index (Homepage)](#index)
 * Main Portals
-    The website will create a cookie locally to record the identity type of the user (e.g. Student). If the user clicked the portal button in the [Homepage](#index) and their identity match what they clicked, then they can skip the step of login. Otherwise, request the user to login.
+    If the user clicked the portal button in the [Homepage](#index) and their identity match what they clicked, then they can skip the step of login. Otherwise, request the user to login.
     * [/student](#student)
     * [/advisor](#advisor)
     * [/staff](#staff)
+    * [/user](#user)
 
 #### /index
 The main page of the website. This will mainly have three buttons to navigate to the "role specific" page, such as advisor's, staff's and student's. These pages will contain the function that the user needs.
@@ -51,12 +57,15 @@ Also, this page will have some brief summary of the current status or the inform
 * Current waiting / Current available / Current avg. meeting duration
 * Is IE office open or not
 * How many advisors available (Express and Regular)
+* Logout (If logged in)
 #### /student
 This page will have some way to access the functions below:
 * Schedule an appointment
 * Send message to the advisors
 * Lineup to the system
 * Changing their information logged on the system
+* Find their appointment records
+* Add notes to the appointments
 Note: As the student lined up to the queue or scheduled an appointment, they can add some notes to let the advisor prepare before the meeting starts.
 #### /advisor
 This page will have some way to access the functions below:
@@ -64,7 +73,9 @@ This page will have some way to access the functions below:
 * Record the start time and the end time of the meeting
 #### /staff
 This page will have some way to access the functions below:
-* Detailed stats of the meeting record (Contact YuShun when working on this section)
+* Detailed stats of the meeting record
+#### /user
+This domain does not have the page for "index," but this is the domain which contains some identity processing related functions.
 
 ### Backend
 Basically the system will have these databases (Bolded item is the index of the database):
@@ -82,26 +93,22 @@ Basically the system will have these databases (Bolded item is the index of the 
     * Specified Advisor
     * Notes
 
-* Scheduled appointments
-    * **Serial number**
-    * Student ID
-    * Scheduled Timestamp
-    * Scheduled time to meet
-    * Scheduled time to end
-
 * Accounts
 	* Identity (Staff/Advisor/Student)
 	* Account ID
-	* Account Password
+	* Account Password (Defined by user, store in SHA224)
 	* Account Recovery Email
 	* Student ID (If the identity is student)
+	* Login key in use
 
 [Some of the data fields might be deleted if the system is allowed to connect to the database of the school]
 * Student information
     * **Student ID**
-    * Password (Defined by student)
 	* Name
+	* Name Pronounciation
 	* Language
+		* Languages
+		* Primary Language
 	* Phone
 		* Phone number
 		* Carrier 
@@ -113,8 +120,25 @@ Basically the system will have these databases (Bolded item is the index of the 
 		* Manually Call
 
 **Waiting queue** and the **current running appointment** is cached locally after the meeting record database is updated or the system has rebooted.
-The waiting queue is ctaegorized by the viewing purpose, so **it's not a single line**.
+The waiting queue is categorized by the viewing purpose, so **it's not a single line**.
+
+### Case Handling / Functions
+#### Statistics Page (In /staff)
+* Filter by Date Range, Advisor, Category and Student.
+* Display brief summary, which contains the average and median length of the meetings, number of the records (How many appointments inside), and also the raw data
+* Add functionality to exclude/delete/edit specific raw data in the database and view.
+
+#### Advisor Portal (/advisor)
+* Notify advisor to sign out/log the end meeting time after certain period of time (default could be 45 mins).
+
+#### Staff queue arranging
+* Allow staff to manually "start" the meeting, and make thi action reversible.
 
 ## Notes
 * Ask Ray ([RaenonX JELLYCAT](https://shorelinecsclub.slack.com/messages/@UBB160092)) on Slack for program implementation details.
 * If you want to join this project, please also contact Ray ([RaenonX JELLYCAT](https://shorelinecsclub.slack.com/messages/@UBB160092)) on Slack. Anyone want to join this project must join Shoreline CC CS Club. No requirements for joining the project.
+* Pending TODO:
+	* /user/register
+		* Add multiple entries functionality of the Email Field (Student Only)
+		* Add multiple entries functionality of the Language Field (Student Only)
+		* Add multiple entries functionality of the Phone Field (Student Only)

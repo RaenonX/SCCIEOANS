@@ -1,0 +1,40 @@
+{%- extends "base.html" %}
+
+{% import "bootstrap/utils.html" as utils %}
+
+{% block layout %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/portal.css') }}">
+{% endblock %}
+
+{% block scriptsex %}
+{%- endblock %}
+
+{% block titleex -%} Advisor Portal {%- endblock %}
+
+{% block content %}
+<div class="container">
+    {%- with messages = get_flashed_messages(with_categories=True) %}
+    {%- if messages %}
+    <div class="row">
+        {{ utils.flashed_messages(messages) }}
+    </div>
+    {%- endif %}
+    {%- endwith %}
+    <div class="row">
+        <div class="col-md-12 set-center" style="margin-bottom: initial">
+            <div class="well">
+                <p class="h1-nbs">SCC IE Office People Calling System - Advisor Index.</p>
+                <div class="glyphicon glyphicon-circle-arrow-right">
+                    Building.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 col-lg-12 set-center">
+            <a class="btn btn-primary btn-big btn-func" href="{{ url_for('.index') }}">Next Student</a>
+        </div>
+    </div>
+</div>
+{%- endblock %}
+
