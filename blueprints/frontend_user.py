@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, current_app, request, redirect, url_for, session
+    Blueprint, current_app, request, redirect, url_for, session, flash
 )
 
 import utils
@@ -59,3 +59,32 @@ def register_post():
         return redirect(url_for("frontend_staff.index"))
     else:
         return redirect(url_for("frontend.index"))
+
+@frontend_user.route("/user", methods=["GET"])
+def user_summary():
+    if data.SESSION_LOGIN_KEY in session:
+        lgn_key = session[data.SESSION_LOGIN_KEY]
+        acc = account_manager.get_account_by_login_key(lgn_key)
+
+        if acc is not None:
+            idt = acc.identity
+
+            if idt == data.Identity.STUDENT:
+                return render_template("user/summary/student.html")
+            elif idt == data.Identity.STAFF:
+                return render_template("user/summary/staff.html")
+            elif idt == data.Identity.ADVISOR:
+                return render_template("user/summary/advisor.html")
+            else:
+                raise ValueError(f"Identity type not recognized. {acc}")
+
+    del session[data.SESSION_LOGIN_KEY]
+    return redirect(url_for("frontend_user.register"))
+
+@frontend_user.route("/user/login", methods=["GET"])
+def login():
+    raise NotImplementedError()
+
+@frontend_user.route("/user/recover", methods=["GET"])
+def forget_password():
+    raise NotImplementedError()

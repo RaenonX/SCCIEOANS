@@ -54,7 +54,22 @@
     <Content Include="templates\student\update.html">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="templates\user\forget_pw.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\user\login.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="templates\user\register.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\user\summary\advisor.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\user\summary\staff.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="templates\user\summary\student.html">
       <SubType>Code</SubType>
     </Content>
     <Content Include="TODO.txt">
@@ -130,6 +145,7 @@
     <Folder Include="templates\user\" />
     <Folder Include="templates\staff\" />
     <Folder Include="templates\student\" />
+    <Folder Include="templates\user\summary\" />
     <Folder Include="utils\" />
     <Folder Include="utils\mail\" />
   </ItemGroup>

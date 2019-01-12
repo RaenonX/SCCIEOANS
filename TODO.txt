@@ -1,5 +1,8 @@
-Validate Account ID and Student ID immediately after the input lost focus to check if the account ID already in use.
-	If not, add a "checked" glyphicon at the end of the input and also add the green border to the input.
-	If yes, add a "x" glyphicon at the end of the input, add the red border (has-error) to the input and display the hyperlink to "Login" and "Get the account back." 
+Complete functions
+	Login on navbar and the page
+	Forget password's webpage
 
-Don't add account record if any error occurred after submitting the registration form.
+Complete these HTML
+	user/summary/advisor.html
+	user/summary/staff.html
+	user/summary/student.html

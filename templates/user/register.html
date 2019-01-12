@@ -64,21 +64,22 @@
                     <div class="panel-body after-usertype">
                         <table class="field-table">
                             <tbody>
-                                <tr>
+                                <tr id="account-id-parent">
                                     <td>Account ID</td>
-                                    <td><input class="form-control" type="text" name="accountID" required /></td>
+                                    <td>
+                                        <div class="has-feedback">
+                                            <input class="form-control" type="text" name="accountID" pattern="\w{6,20}" placeholder="Enter 6~20 characters." required />
+                                            <i class="form-control-feedback glyphicon glyphicon-user" id="accountIDstatus"></i>
+                                        </div>
+                                    </td>
                                 </tr>
-                                <tr>
+                                <tr id="accountIDrecov">
                                     <td></td>
-                                    <td>Enter 6~20 characters.</td>
+                                    <td>Account ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">here</a> to login, or click <a href="{{ url_for("frontend_user.forget_password") }}">here</a> to get back your account.</td>
                                 </tr>
                                 <tr>
                                     <td>Password</td>
-                                    <td><input class="form-control" type="password" name="accountPW" required /></td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td>Enter 6~20 characters.</td>
+                                    <td><input class="form-control" type="password" name="accountPW" pattern="\w{6,20}" placeholder="Enter 6~20 characters." required /></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -97,9 +98,18 @@
                                     <td>Name</td>
                                     <td><input class="form-control" type="text" name="accountName" required /></td>
                                 </tr>
-                                <tr class="student-only">
+                                <tr class="student-only" id="student-id-parent">
                                     <td>SCC Student ID</td>
-                                    <td><input class="form-control" type="text" name="studentId" pattern="[0-9]{9}" required /></td>
+                                    <td>
+                                        <div class="has-feedback">
+                                            <input class="form-control" type="text" name="studentID" pattern="[0-9]{9}" required />
+                                            <i class="form-control-feedback glyphicon glyphicon-user" id="studentIDstatus"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr id="studentIDrecov">
+                                    <td></td>
+                                    <td>Student ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">here</a> to login, or click <a href="{{ url_for("frontend_user.forget_password") }}">here</a> to get back your account.</td>
                                 </tr>
                                 <tr>
                                     <td>Recovery Email</td>
@@ -186,7 +196,7 @@
         <hr />
         <div class="row">
             <div class="col-md-12">
-                <button type="submit" class="btn btn-success">Register</button>
+                <button type="submit" class="btn btn-success" id="submit">Register</button>
             </div>
         </div>
     </form>

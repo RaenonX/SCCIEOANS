@@ -22,6 +22,14 @@ class account_manager(base_collection):
         self.create_index(account_entry.ACCOUNT_ID, unique=True)
         self._login_key_cache = {}
 
+    def get_account_by_login_key(self, login_key):
+        """
+        Return:
+            Account in account_entry.
+        """
+        ret = self.find_one({ account_entry.LOGIN_KEY: login_key })
+        return account_entry(ret) if ret is not None else None
+
     def create_account_student(self, account_id, name, student_id, password, recovery_email):
         """
         Return:
@@ -35,10 +43,13 @@ class account_manager(base_collection):
         Return:
             The updated login key of the new account.
         """
-        result = self.insert_one(account_entry.init_student(account_id, name, student_id, password, recovery_email))
+        result = self.insert_one(account_entry.init_non_student(identity, name, account_id, password, recovery_email))
         return self.update_login_key(result.inserted_id)
 
     def is_account_id_exists(self, account_id):
+        if account_id is None:
+            return False
+
         return self.count({ account_entry.ACCOUNT_ID: account_id }) > 0
 
     def is_login_key_exists(self, login_key):
@@ -62,11 +73,11 @@ class account_manager(base_collection):
         Update the login key in the database and return the updated login key.
         """
         gen_key = self._random_login_key()
-        entry = account_entry(self.find_one_and_update({ "_id": account_serial_id }, { account_entry.LOGIN_KEY: gen_key }, upsert=True))
+        entry = account_entry(self.find_one_and_update({ "_id": account_serial_id }, { "$set": { account_entry.LOGIN_KEY: gen_key } }, upsert=True))
         self._login_key_cache[gen_key] = entry.identity
         return gen_key
 
-    def _random_login_key():
+    def _random_login_key(self):
         return uuid.uuid4()
 
 class account_entry(dict_like_mapping):

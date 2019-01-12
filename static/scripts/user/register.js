@@ -25,6 +25,54 @@ function onReady() {
     $("#carrierList").change(function () {
         onSelectChangedUpdateInput($(this), "#carrier");
     });
+
+    inputVerify("api.check_account_id_available", "account_id", "accountID", "account-id-parent", "accountIDstatus");
+    inputVerify("api.check_student_id_available", "student_id", "studentID", "student-id-parent", "studentIDstatus");
+}
+
+function inputVerify(endpoint, param_name, input_id, parent_input_id, glyphicon_id) {
+    $("#" + input_id + "recov").hide();
+
+    $("input[name=" + input_id + "]").focusout(function () {
+        if ($(this).is(":visible") && $(this).not(":hidden")) {
+            var elem = $("#" + glyphicon_id);
+            var param_dict = {};
+            param_dict[param_name] = $(this).val();
+
+            if ($(this).val() !== "") {
+                $.getJSON(Flask.url_for(endpoint, param_dict), function (json) {
+                    var available = Boolean(Number(json));
+
+                    elem.removeClass("glyphicon-user");
+
+                    if (available) {
+                        $("#" + parent_input_id).removeClass("has-error").addClass("has-success");
+                        elem.removeClass("glyphicon-remove").addClass("glyphicon-ok");
+                        $("#" + input_id + "recov").hide();
+                    } else {
+                        $("#" + parent_input_id).removeClass("has-success").addClass("has-error");
+                        elem.removeClass("glyphicon-ok").addClass("glyphicon-remove");
+                        $("#" + input_id + "recov").show();
+                    }
+
+                    changeSubmitButtonEnabled(available);
+                });
+            } else {
+                elem.removeClass("glyphicon-ok").removeClass("glyphicon-remove").addClass("glyphicon-user");
+                $("#" + input_id + "recov").hide();
+            }
+        }
+    });
+}
+
+function changeSubmitButtonEnabled(enabled) {
+    var submitBtn = $("#submit");
+
+    if (enabled) {
+        submitBtn.removeAttr("disabled");
+    } else {
+        submitBtn.attr("disabled", "disabled");
+    }
 }
 
 function onSelectChangedUpdateInput(select, input) {
@@ -39,8 +87,10 @@ function onIdTypesClicked(event) {
 
     if ($(event.target).val() == 1) {
         $(".student-only").show();
+        $("input[name=studentId]").attr("required", "required"); 
     } else {
         $(".student-only").hide();
+        $("input[name=studentId]").removeAttr("required"); 
     }
 }
 
@@ -68,39 +118,41 @@ function onFormSubmit() {
 
     let success = true;
 
-    if ($("#notifSMS").val() == 1) {
-        if (!$("input[name=phoneNum]").val()) {
-            $("#phone-num").addClass("has-error");
-            missing.push("Phone Number");
-            success = false;
+    if ($("#idType").val() == 1) {
+        if ($("#notifSMS").val() == 1) {
+            if (!$("input[name=phoneNum]").val()) {
+                $("#phone-num").addClass("has-error");
+                missing.push("Phone Number");
+                success = false;
+            }
+            if ($("#carrier").val() == "-") {
+                missing.push("Phone Carrier");
+                $("#phone-carrier").addClass("has-error");
+                success = false;
+            }
         }
-        if ($("#carrier").val() == "-") {
-            missing.push("Phone Carrier");
-            $("#phone-carrier").addClass("has-error");
-            success = false;
-        }
-    }
 
-    if ($("#notifEmail").val() == 1) {
-        if (!$("input[name=studentEmail]").val()) {
-            missing.push("Email");
-            $("#email-input").addClass("has-error");
+        if ($("#notifEmail").val() == 1) {
+            if (!$("input[name=studentEmail]").val()) {
+                missing.push("Email");
+                $("#email-input").addClass("has-error");
+                success = false;
+            }
+        }
+
+        if ($("#notifManual").val() == 1) {
+            if (!$("input[name=namePron]").val()) {
+                missing.push("Name Pronuncitation");
+                $("#manual-pron").addClass("has-error");
+                success = false;
+            }
+        }
+
+        if ($("#lang").val() == -1) {
+            missing.push("Language");
+            $("#lang-parent").addClass("has-error");
             success = false;
         }
-    }
-
-    if ($("#notifManual").val() == 1) {
-        if (!$("input[name=namePron]").val()) {
-            missing.push("Name Pronuncitation");
-            $("#manual-pron").addClass("has-error");
-            success = false;
-        }
-    }
-
-    if ($("#lang").val() == -1) {
-        missing.push("Language");
-        $("#lang-parent").addClass("has-error");
-        success = false;
     }
 
     if (!success) {

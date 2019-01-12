@@ -13,6 +13,12 @@ class student_info_manager(base_collection):
              notif_sms=False, notif_email=False, notif_manual=True):
         self.insert_one(student_info_entry.init(student_id, languages, emails, phone_number, phone_carrier, name_pronunciation, notif_sms, notif_email, notif_manual))
 
+    def is_student_id_exists(self, student_id):
+        if student_id is None:
+            return False
+
+        return self.count({ student_info_entry.STUDENT_ID: student_id }) > 0
+
 class student_info_entry(dict_like_mapping):
     STUDENT_ID = "sid"
 

@@ -2,6 +2,8 @@ from flask import session, render_template, url_for, request
 from flask_nav import Nav
 from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator, RawTag
 
+from ._objs import *
+
 nav = Nav()
 
 nav_items = [
@@ -19,6 +21,16 @@ nav_items = [
 
 def append_dynamic(navitems):
     to_append = []
+
+    if data.SESSION_LOGIN_KEY in session:
+        lgn_key = session[data.SESSION_LOGIN_KEY]
+        acc = account_manager.get_account_by_login_key(lgn_key)
+
+        if acc is None:
+            to_append.append(View("Login", "frontend_user.login"))
+            del session[data.SESSION_LOGIN_KEY]
+        else:
+            to_append.append(View("My Account Data", "frontend_user.user_summary"))
 
     return navitems + to_append
 
