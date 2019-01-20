@@ -1,1 +1,1 @@
-from .flaskmail import flaskmail
+from .flaskmail import FlaskMail

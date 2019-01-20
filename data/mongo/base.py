@@ -3,12 +3,14 @@ from collections import MutableMapping
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 
+
 class base_collection(Collection):
-    def __init__(self, mongo_client, db_name, col_name, cache_keys=[]):
+    def __init__(self, mongo_client, db_name, col_name, cache_keys=None):
         super().__init__(mongo_client.get_database(db_name), col_name)
         self._cache = {}
-        for k in cache_keys:
-            self.init_cache(k)
+        if cache_keys is not None:
+            for k in cache_keys:
+                self.init_cache(k)
 
     def init_cache(self, cache_key):
         self._cache[cache_key] = {}
@@ -37,6 +39,10 @@ class base_collection(Collection):
         return self._cache[cache_key][item_key]
 
 class dict_like_mapping(MutableMapping):
+    @classmethod
+    def get_none(cls, org_dict):
+        return None if org_dict is None else cls(org_dict)
+
     def __init__(self, org_dict):
         if org_dict is None:
             self._dict = {}

@@ -1,10 +1,6 @@
 $(document).ready(
     onReady()
-).keypress(function (e) {
-    if (e.which == 13) {
-        $("#submitNewUser").submit();
-    }
-});
+);
 
 function initLayouts() {
     $(".after-usertype").hide();

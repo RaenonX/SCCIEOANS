@@ -34,7 +34,8 @@
         </div>
     </div>
 
-    <form class="form-horizontal" method="post" action="{{ url_for("frontend_user.register_post") }}" id="submitNewUser">
+    <form class="form-horizontal formEnterSubmit" method="post" action="{{ url_for("frontend_user.register_post") }}"
+          id="submitNewUser">
         <input type="hidden" id="idType" name="idType_id">
 
         <input type="hidden" id="lang" name="lang_id" value="-1">
@@ -75,7 +76,11 @@
                                 </tr>
                                 <tr id="accountIDrecov">
                                     <td></td>
-                                    <td>Account ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a> to login, or click <a href="{{ url_for("frontend_user.forgot_password") }}">HERE</a> to get back your account.</td>
+                                    <td>Account ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a>
+                                        to login, or click <a
+                                                href="{{ url_for("frontend_user.forget_password") }}">HERE</a> to get
+                                        back your account.
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Password</td>
@@ -109,7 +114,11 @@
                                 </tr>
                                 <tr id="studentIDrecov">
                                     <td></td>
-                                    <td>Student ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a> to login, or click <a href="{{ url_for("frontend_user.forgot_password") }}">HERE</a> to get back your account.</td>
+                                    <td>Student ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a>
+                                        to login, or click <a
+                                                href="{{ url_for("frontend_user.forget_password") }}">HERE</a> to get
+                                        back your account.
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Recovery Email</td>

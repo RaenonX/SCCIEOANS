@@ -111,7 +111,7 @@
     <Compile Include="templates\student\message.html" />
     <Compile Include="templates\student\schedule.html" />
     <Compile Include="templates\student\walkin.html" />
-    <Compile Include="utils\mail\flaskmail.py">
+    <Compile Include="utils\mail\FlaskMail.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="utils\mail\__init__.py" />
