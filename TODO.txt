@@ -1,8 +1,0 @@
-Complete functions
-	Login on navbar and the page
-	Forgot Password's webpage
-
-Complete these HTML
-	user/summary/advisor.html
-	user/summary/staff.html
-	user/summary/student.html

@@ -99,7 +99,7 @@ def login_post():
     if login_result.success:
         session[data.SESSION_LOGIN_KEY] = login_result.acc_entry.login_key
         
-        flash(f"Registration succeed. Welcome, {login_result.acc_entry.name}!")
+        flash(f"Welcome, {login_result.acc_entry.name}!")
         return redir_portal_by_identity(login_result.acc_entry.identity)
     else:
         flash("Either account ID or the password is incorrect.", category="danger")
