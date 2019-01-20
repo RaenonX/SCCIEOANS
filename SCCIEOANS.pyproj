@@ -37,6 +37,9 @@
     </Content>
     <Content Include="static\less.min.js" />
     <Content Include="static\layouts\main.css" />
+    <Content Include="static\scripts\user\login.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="static\scripts\user\register.js">
       <SubType>Code</SubType>
     </Content>

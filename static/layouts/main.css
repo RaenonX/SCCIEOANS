@@ -8,6 +8,10 @@ body {
     text-align: center;
 }
 
+.set-right {
+    text-align: right;
+}
+
 .field-table {
     border-collapse: separate;
     border-spacing: 5px 5px;

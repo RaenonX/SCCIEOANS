@@ -1,5 +1,6 @@
 import uuid
 import hashlib
+import pymongo
 
 from ex import EnumWithName
 
@@ -33,7 +34,7 @@ class account_manager(base_collection):
     def create_account_student(self, account_id, name, student_id, password, recovery_email):
         """
         Return:
-            The updated login key of the new account.
+            account_entry
         """
         result = self.insert_one(account_entry.init_student(account_id, name, student_id, password, recovery_email))
         return self.update_login_key(result.inserted_id)
@@ -41,7 +42,7 @@ class account_manager(base_collection):
     def create_account_non_student(self, identity, account_id, name, password, recovery_email):
         """
         Return:
-            The updated login key of the new account.
+            account_entry
         """
         result = self.insert_one(account_entry.init_non_student(identity, name, account_id, password, recovery_email))
         return self.update_login_key(result.inserted_id)
@@ -52,7 +53,7 @@ class account_manager(base_collection):
 
         return self.count({ account_entry.ACCOUNT_ID: account_id }) > 0
 
-    def is_login_key_exists(self, login_key):
+    def check_key_get_identity(self, login_key):
         """
         Return:
             The identity type in enum if exists, else return None.
@@ -70,17 +71,30 @@ class account_manager(base_collection):
 
     def update_login_key(self, account_serial_id):
         """
-        Update the login key in the database and return the updated login key.
+        Update the login key in the database and return the account_entry along with the updated login key.
         """
         gen_key = self._random_login_key()
-        entry = account_entry(self.find_one_and_update({ "_id": account_serial_id }, { "$set": { account_entry.LOGIN_KEY: gen_key } }, upsert=True))
+        entry = account_entry(self.find_one_and_update({ "_id": account_serial_id }, { "$set": { account_entry.LOGIN_KEY: gen_key } }, return_document=pymongo.ReturnDocument.AFTER))
         self._login_key_cache[gen_key] = entry.identity
-        return gen_key
+        return entry
+
+    def login(self, account_id, account_pw):
+        """
+        Return:
+            login_result
+        """
+        acc_entry = self.find_one({ account_entry.ACCOUNT_ID: account_id, account_entry.PASSWORD_SHA: to_sha256(account_pw) })
+
+        if acc_entry is None:
+            return login_result(False, acc_entry)
+        else:
+            return login_result(True, self.update_login_key(account_entry(acc_entry).serial_id))
 
     def _random_login_key(self):
         return uuid.uuid4()
 
 class account_entry(dict_like_mapping):
+    SERIAL_ID = "_id"
     IDENTITY = "i"
 
     ACCOUNT_ID = "aid"
@@ -123,6 +137,10 @@ class account_entry(dict_like_mapping):
         return Identity(self[account_entry.IDENTITY])
     
     @property 
+    def serial_id(self):
+        return self[account_entry.SERIAL_ID]
+    
+    @property 
     def account_id(self):
         return self[account_entry.ACCOUNT_ID]
 
@@ -145,6 +163,19 @@ class account_entry(dict_like_mapping):
     @property 
     def login_key(self):
         return self.get(account_entry.LOGIN_KEY)
+
+class login_result:
+    def __init__(self, success, account_entry):
+        self._success = success
+        self._acc_entry = account_entry
+
+    @property
+    def success(self):
+        return self._success
+
+    @property
+    def acc_entry(self):
+        return self._acc_entry
 
 def to_sha256(s):
     return hashlib.sha224(bytes(s, "utf-8")).hexdigest()

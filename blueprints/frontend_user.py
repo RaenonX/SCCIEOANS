@@ -27,7 +27,7 @@ def register_post():
     recov_email = form["accountEmail"]
 
     if identity_enum == data.Identity.STUDENT:
-        student_id = form["studentId"]
+        student_id = form["studentID"]
 
         lang_id = data.languages[int(form["lang_id"]) - 1].id
 
@@ -45,20 +45,13 @@ def register_post():
 
         student_info_manager.create_student_info_entry(student_id, lang_id, stu_email, phone_num, carrier, pronunciation, notifSMS, notifEmail, notifManual)
         
-        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_student(account_id, name, student_id, account_pw, recov_email)
+        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_student(account_id, name, student_id, account_pw, recov_email).login_key
     else:
-        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_non_student(identity_enum, account_id, name, account_pw, recov_email)
+        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_non_student(identity_enum, account_id, name, account_pw, recov_email).login_key
 
     flash(f"Registration succeed. Welcome, {name}!")
 
-    if identity_enum == data.Identity.STUDENT:
-        return redirect(url_for("frontend_student.index"))
-    elif identity_enum == data.Identity.ADVISOR:
-        return redirect(url_for("frontend_advisor.index"))
-    elif identity_enum == data.Identity.STAFF:
-        return redirect(url_for("frontend_staff.index"))
-    else:
-        return redirect(url_for("frontend.index"))
+    return redir_portal_by_identity(identity_enum)
 
 @frontend_user.route("/user", methods=["GET"])
 def user_summary():
@@ -77,14 +70,63 @@ def user_summary():
                 return render_template("user/summary/advisor.html")
             else:
                 raise ValueError(f"Identity type not recognized. {acc}")
+        else:
+            del session[data.SESSION_LOGIN_KEY]
 
-    del session[data.SESSION_LOGIN_KEY]
-    return redirect(url_for("frontend_user.register"))
+    return redirect(url_for("frontend_user.login"))
 
 @frontend_user.route("/user/login", methods=["GET"])
 def login():
-    raise NotImplementedError()
+    if data.SESSION_LOGIN_KEY in session:
+        idt_type = account_manager.check_key_get_identity(session[data.SESSION_LOGIN_KEY])
+
+        if idt_type is not None:
+            return redir_portal_by_identity(idt_type)
+        else:
+            del session[data.SESSION_LOGIN_KEY]
+
+    return render_template("user/login.html")
+
+@frontend_user.route("/user/login", methods=["POST"])
+def login_post():
+    form = request.form
+
+    acctID = form["accountID"]
+    acctPW = form["accountPW"]
+
+    login_result = account_manager.login(acctID, acctPW)
+
+    if login_result.success:
+        session[data.SESSION_LOGIN_KEY] = login_result.acc_entry.login_key
+        
+        flash(f"Registration succeed. Welcome, {login_result.acc_entry.name}!")
+        return redir_portal_by_identity(login_result.acc_entry.identity)
+    else:
+        flash("Either account ID or the password is incorrect.", category="danger")
+        return redirect(url_for("frontend_user.login"))
+    
+@frontend_user.route("/user/logout", methods=["GET"])
+def logout():
+    if data.SESSION_LOGIN_KEY in session:
+        del session[data.SESSION_LOGIN_KEY]
+
+    flash("Successfully logged out.")
+    return redirect(url_for("frontend.index"))
+    
+def redir_portal_by_identity(identity_enum, err_on_not_recognized=False):
+    if identity_enum == data.Identity.STUDENT:
+        return redirect(url_for("frontend_student.index"))
+    elif identity_enum == data.Identity.ADVISOR:
+        return redirect(url_for("frontend_advisor.index"))
+    elif identity_enum == data.Identity.STAFF:
+        return redirect(url_for("frontend_staff.index"))
+    else:
+        if err_on_not_recognized:
+            raise ValueError(f"Identity type not recognized. {acc}")
+        else:
+            flash(f"Identity not recognized: {identity_enum}")
+            return redirect(url_for("frontend.index")) 
 
 @frontend_user.route("/user/recover", methods=["GET"])
-def forget_password():
+def forgot_password():
     raise NotImplementedError()

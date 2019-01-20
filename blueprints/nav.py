@@ -30,7 +30,12 @@ def append_dynamic(navitems):
             to_append.append(View("Login", "frontend_user.login"))
             del session[data.SESSION_LOGIN_KEY]
         else:
-            to_append.append(View("My Account Data", "frontend_user.user_summary"))
+            to_append.append(Subgroup("Account Management",
+                                      View("My Account Data", "frontend_user.user_summary"),
+                                      Separator(),
+                                      View("Logout", "frontend_user.logout")))
+    else:
+        to_append.append(View("Login", "frontend_user.login"))
 
     return navitems + to_append
 

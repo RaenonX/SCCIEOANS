@@ -18,7 +18,48 @@
     {%- endif %}
     {%- endwith %}
 
-
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-info set-center">
+                <div class="panel-heading">
+                    <span class="h3">Login Information</span>
+                </div>
+                <div class="panel-body">
+                    <form class="form-horizontal" method="post" action="{{ url_for("frontend_user.login_post") }}" id="submitLogin">
+                        <table class="field-table">
+                            <tbody>
+                                <tr>
+                                    <td>Account ID</td>
+                                    <td><input class="form-control" type="text" name="accountID" pattern="\w{6,20}" placeholder="6~20 characters." required /></td>
+                                </tr>
+                                <tr>
+                                    <td>Password</td>
+                                    <td><input class="form-control" type="password" name="accountPW" pattern="\w{6,20}" placeholder="6~20 characters." required /></td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td class="set-right"><button type="submit" class="btn btn-info" id="submit">Login</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-success set-center">
+                <div class="panel-heading">
+                    <span class="h3">Account Management</span>
+                </div>
+                <div class="panel-body">
+                    <div class="list-group">
+                        <a href="{{ url_for("frontend_user.register") }}" class="list-group-item list-group-item-action set-center">Create Account</a>
+                        <a href="{{ url_for("frontend_user.forgot_password") }}" class="list-group-item list-group-item-action set-center">Forgot Password</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {%- endblock %}
 
