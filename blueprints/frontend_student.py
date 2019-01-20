@@ -20,7 +20,3 @@ def walk_in_appointment():
 @frontend_student.route("/student/message")
 def send_message():
     return render_template("student/message.html")
-
-@frontend_student.route("/student/update")
-def update_info():
-    return render_template("student/update.html")

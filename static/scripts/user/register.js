@@ -87,10 +87,10 @@ function onIdTypesClicked(event) {
 
     if ($(event.target).val() == 1) {
         $(".student-only").show();
-        $("input[name=studentId]").attr("required", "required"); 
+        $("input[name=studentID]").attr("required", "required"); 
     } else {
         $(".student-only").hide();
-        $("input[name=studentId]").removeAttr("required"); 
+        $("input[name=studentID]").removeAttr("required"); 
     }
 }
 

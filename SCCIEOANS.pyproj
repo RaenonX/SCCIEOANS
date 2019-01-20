@@ -57,7 +57,7 @@
     <Content Include="templates\student\update.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="templates\user\forget_pw.html">
+    <Content Include="templates\user\forget_pw_request.html">
       <SubType>Code</SubType>
     </Content>
     <Content Include="templates\user\login.html">

@@ -164,6 +164,24 @@ class account_entry(dict_like_mapping):
     def login_key(self):
         return self.get(account_entry.LOGIN_KEY)
 
+class pw_lost_token_manager(base_collection):
+    def __init__(self, mongo_client, db_name, col_name):
+        super().__init__(mongo_client, db_name, col_name)
+        self.create_index(account_entry.CREATED_TIME, expireAfterSeconds=86400)
+
+class pw_lost_token_entry(dict_like_mapping):
+    CREATED_TIME = "ct"
+    LINKED_ACCOUNT_ID = "aid"
+    TOKEN = "t"
+
+    def __init__(self, org_dict):
+        super().__init__(org_dict)
+
+    @staticmethod
+    def init_non_student(identity, name, account_id, password, recovery_email):
+        return account_entry._init(identity, name, account_id, password, recovery_email)
+
+
 class login_result:
     def __init__(self, success, account_entry):
         self._success = success
