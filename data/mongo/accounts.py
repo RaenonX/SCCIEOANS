@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Union
 
@@ -18,6 +21,83 @@ class Identity(EnumWithName):
     STUDENT = 1, "Student"
     ADVISOR = 2, "Advisor"
     STAFF = 3, "Staff"
+
+
+class AccountEntry(DictLikeMapping):
+    UNIQUE_ID = "_id"
+    IDENTITY = "i"
+
+    ACCOUNT_ID = "aid"
+    PASSWORD_SHA = "pw_sha"
+
+    ACCOUNT_NAME = "name"
+    RECOVERY_EMAIL = "r_mail"
+
+    STUDENT_ID = "sid"
+    LOGIN_KEY = "lg_key"
+
+    def __init__(self, org_dict):
+        super().__init__(org_dict)
+
+    @staticmethod
+    def init_non_student(
+            identity: Identity, name: str, account_id: str, password: str, recovery_email: str) -> AccountEntry:
+        return AccountEntry._init(identity, name, account_id, password, recovery_email)
+
+    @staticmethod
+    def init_student(
+            account_id: str, name: str, student_id: int,
+            password: str, recovery_email: str) -> AccountEntry:
+        return AccountEntry._init(Identity.STUDENT, name, account_id, password, recovery_email, student_id)
+
+    @staticmethod
+    def _init(
+            identity: Identity, name: str, account_id: str, password: str,
+            recovery_email: str, student_id: Union[int, None] = None) -> AccountEntry:
+        d = {
+            AccountEntry.IDENTITY: identity,
+            AccountEntry.ACCOUNT_NAME: name,
+            AccountEntry.ACCOUNT_ID: account_id,
+            AccountEntry.PASSWORD_SHA: to_sha256(password),
+            AccountEntry.RECOVERY_EMAIL: recovery_email
+        }
+
+        if student_id is not None:
+            d[AccountEntry.STUDENT_ID] = student_id
+
+        return AccountEntry(d)
+
+    @property
+    def identity(self) -> Identity:
+        return Identity(self[AccountEntry.IDENTITY])
+
+    @property
+    def unique_id(self) -> ObjectId:
+        return self[AccountEntry.UNIQUE_ID]
+
+    @property
+    def account_id(self) -> str:
+        return self[AccountEntry.ACCOUNT_ID]
+
+    @property
+    def name(self) -> str:
+        return self[AccountEntry.ACCOUNT_NAME]
+
+    @property
+    def password_sha(self) -> str:
+        return self[AccountEntry.PASSWORD_SHA]
+
+    @property
+    def recovery_email(self) -> str:
+        return self[AccountEntry.RECOVERY_EMAIL]
+
+    @property
+    def student_id(self) -> Union[str, None]:
+        return self.get(AccountEntry.STUDENT_ID)
+
+    @property
+    def login_key(self) -> Union[bytes, None]:
+        return self.get(AccountEntry.LOGIN_KEY)
 
 
 class AccountManager(BaseMongoCollection):
@@ -76,7 +156,7 @@ class AccountManager(BaseMongoCollection):
             {AccountEntry.ACCOUNT_ID: account_id, AccountEntry.PASSWORD_SHA: to_sha256(account_pw)})
 
         if acc_entry is None:
-            return LoginResult(False, None)
+            return LoginResult(False)
         else:
             return LoginResult(True, self.update_login_key(AccountEntry(acc_entry).unique_id))
 
@@ -87,83 +167,6 @@ class AccountManager(BaseMongoCollection):
     @staticmethod
     def random_login_key() -> uuid:
         return uuid.uuid4()
-
-
-class AccountEntry(DictLikeMapping):
-    UNIQUE_ID = "_id"
-    IDENTITY = "i"
-
-    ACCOUNT_ID = "aid"
-    PASSWORD_SHA = "pw_sha"
-    
-    ACCOUNT_NAME = "name"
-    RECOVERY_EMAIL = "r_mail"
-
-    STUDENT_ID = "sid"
-    LOGIN_KEY = "lg_key"
-
-    def __init__(self, org_dict):
-        super().__init__(org_dict)
-
-    @staticmethod
-    def init_non_student(
-            identity: Identity, name: str, account_id: str, password: str, recovery_email: str) -> AccountEntry:
-        return AccountEntry._init(identity, name, account_id, password, recovery_email)
-
-    @staticmethod
-    def init_student(
-            account_id: str, name: str, student_id: int,
-            password: str, recovery_email: str) -> AccountEntry:
-        return AccountEntry._init(Identity.STUDENT, name, account_id, password, recovery_email, student_id)
-
-    @staticmethod
-    def _init(
-            identity: Identity, name: str, account_id: str, password: str,
-            recovery_email: str, student_id: Union[int, None] = None) -> AccountEntry:
-        d = {
-            AccountEntry.IDENTITY: identity,
-            AccountEntry.ACCOUNT_NAME: name,
-            AccountEntry.ACCOUNT_ID: account_id,
-            AccountEntry.PASSWORD_SHA: to_sha256(password),
-            AccountEntry.RECOVERY_EMAIL: recovery_email
-        }
-
-        if student_id is not None:
-            d[AccountEntry.STUDENT_ID] = student_id
-
-        return AccountEntry(d)
-    
-    @property
-    def identity(self) -> Identity:
-        return Identity(self[AccountEntry.IDENTITY])
-
-    @property
-    def unique_id(self) -> ObjectId:
-        return self[AccountEntry.UNIQUE_ID]
-    
-    @property
-    def account_id(self) -> str:
-        return self[AccountEntry.ACCOUNT_ID]
-
-    @property
-    def name(self) -> str:
-        return self[AccountEntry.ACCOUNT_NAME]
-
-    @property
-    def password_sha(self) -> str:
-        return self[AccountEntry.PASSWORD_SHA]
-
-    @property
-    def recovery_email(self) -> str:
-        return self[AccountEntry.RECOVERY_EMAIL]
-
-    @property
-    def student_id(self) -> Union[str, None]:
-        return self.get(AccountEntry.STUDENT_ID)
-    
-    @property
-    def login_key(self) -> Union[bytes, None]:
-        return self.get(AccountEntry.LOGIN_KEY)
 
 
 class PwLostTokenManager(BaseMongoCollection):
@@ -229,18 +232,10 @@ class PwLostTokenEntry(DictLikeMapping):
             f"{(self.created_time + timedelta(seconds=PwLostTokenManager.EXPIRE_SECS)):%Y/%m/%d %H:%M:%S}."
 
 
+@dataclass
 class LoginResult:
-    def __init__(self, success: bool, account_entry: Union[AccountEntry, None]):
-        self._success = success
-        self._acc_entry = account_entry
-
-    @property
-    def success(self) -> bool:
-        return self._success
-
-    @property
-    def acc_entry(self) -> Union[AccountEntry, None]:
-        return self._acc_entry
+    success: bool = False
+    account_entry: Union[AccountEntry, None] = None
 
 
 def to_sha256(s: str) -> str:

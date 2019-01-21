@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Union
+from typing import Union, Generator
 
 from bson import ObjectId
 from pymongo import DESCENDING

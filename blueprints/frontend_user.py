@@ -101,10 +101,10 @@ def login_post():
     login_result = account_manager.login(acct_id, acct_pw)
 
     if login_result.success:
-        session[data.SESSION_LOGIN_KEY] = login_result.acc_entry.login_key
-        
-        flash(f"Welcome, {login_result.acc_entry.name}!")
-        return redir_portal_by_identity(login_result.acc_entry.identity)
+        session[data.SESSION_LOGIN_KEY] = login_result.account_entry.login_key
+
+        flash(f"Welcome, {login_result.account_entry.name}!")
+        return redir_portal_by_identity(login_result.account_entry.identity)
     else:
         flash("Either account ID or the password is incorrect.", category="danger")
         return redirect(url_for("frontend_user.login"))
