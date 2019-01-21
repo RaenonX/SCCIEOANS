@@ -1,1 +1,1 @@
-from mongo import *
+from .mongo import *
