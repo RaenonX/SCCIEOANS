@@ -1,85 +1,98 @@
-from .base import base_collection, dict_like_mapping
+from typing import Union
+
+from data import Language, languages
+from utils.phone import PhoneCarrier, PhoneCarriersManager
+from .base import BaseMongoCollection, DictLikeMapping
 
 DATABASE_NAME = "accounts"
 
-class student_info_manager(base_collection):
+
+class StudentInfoManager(BaseMongoCollection):
     COLLECTION_NAME = "student_info"
 
     def __init__(self, mongo_client):
-        super().__init__(mongo_client, DATABASE_NAME, student_info_manager.COLLECTION_NAME)
-        self.create_index(student_info_entry.STUDENT_ID, unique=True)
+        super().__init__(mongo_client, DATABASE_NAME, StudentInfoManager.COLLECTION_NAME)
+        self.create_index(StudentInfoEntry.STUDENT_ID, unique=True)
 
-    def create_student_info_entry(self, student_id, languages, emails=[], phone_number=None, phone_carrier=None, name_pronunciation=None,
-             notif_sms=False, notif_email=False, notif_manual=True):
-        self.insert_one(student_info_entry.init(student_id, languages, emails, phone_number, phone_carrier, name_pronunciation, notif_sms, notif_email, notif_manual))
+    def create_student_info_entry(
+            self, student_id: int, lang_id: int, email: str,
+            phone_number: Union[str, None] = None, phone_carrier_name: Union[str, None] = None,
+            name_pronunciation: Union[str, None] = None,
+            notif_sms: bool = False, notif_email: bool = False, notif_manual: bool = True) -> None:
+        self.insert_one(
+            StudentInfoEntry.init(
+                student_id, lang_id, email, phone_number, phone_carrier_name, name_pronunciation,
+                notif_sms, notif_email, notif_manual))
 
-    def is_student_id_exists(self, student_id):
+    def is_student_id_exists(self, student_id: Union[int, None]) -> bool:
         if student_id is None:
             return False
 
-        return self.count({ student_info_entry.STUDENT_ID: student_id }) > 0
+        return self.count_documents({StudentInfoEntry.STUDENT_ID: student_id}) > 0
 
-class student_info_entry(dict_like_mapping):
+
+class StudentInfoEntry(DictLikeMapping):
     STUDENT_ID = "sid"
 
     NAME_PRONUNCIATION = "name_prn"
 
-    LANGUAGES = "lang"
+    LANGUAGE_ID = "lang"
     PHONE = "ph"
-    EMAILS = "emails"
+    EMAIL = "email"
     NOTIFICATION_PREFERENCES = "notif"
 
     def __init__(self, org_dict):
         super().__init__(org_dict)
 
     @staticmethod
-    def init(sid, languages, emails=[], phone_number=None, phone_carrier=None, name_pronunciation=None,
-             notif_sms=False, notif_email=False, notif_manual=True):
-        if not isinstance(languages, list):
-            languages = [languages]
-
-        if not isinstance(emails, list):
-            emails = [emails]
+    def init(sid: int, lang_id: int, email: Union[str, None] = None,
+             phone_number: Union[str, None] = None, phone_carrier_name: Union[str, None] = None,
+             name_pronunciation: Union[str, None] = None,
+             notif_sms: bool = False, notif_email: bool = False, notif_manual: bool = True) -> StudentInfoEntry:
 
         d = {
-            student_info_entry.STUDENT_ID: sid,
-            student_info_entry.NAME_PRONUNCIATION: name_pronunciation,
-            student_info_entry.LANGUAGES: languages,
-            student_info_entry.EMAILS: emails,
-            student_info_entry.NOTIFICATION_PREFERENCES: student_entry_notification_pref.init(notif_sms, notif_email, notif_manual)
+            StudentInfoEntry.STUDENT_ID: sid,
+            StudentInfoEntry.NAME_PRONUNCIATION: name_pronunciation,
+            StudentInfoEntry.LANGUAGE_ID: lang_id,
+            StudentInfoEntry.NOTIFICATION_PREFERENCES:
+                StudentEntryNotificationPreference.init(notif_sms, notif_email, notif_manual)
         }
 
-        if phone_number is not None or phone_carrier is not None:
-            d[student_info_entry.PHONE] = student_entry_phone.init(phone_number, phone_carrier)
+        if email is not None:
+            d[StudentInfoEntry.EMAIL] = email
 
-        return student_info_entry(d)
+        if phone_number is not None or phone_carrier_name is not None:
+            d[StudentInfoEntry.PHONE] = StudentEntryPhone.init(phone_number, phone_carrier_name)
 
-    @property
-    def student_id(self):
-        return self[student_info_entry.STUDENT_ID]
-
-    @property
-    def name_pronunciation(self):
-        return self[student_info_entry.NAME_PRONUNCIATION]
+        return StudentInfoEntry(d)
 
     @property
-    def languages(self):
-        return self[student_info_entry.LANGUAGES]
+    def student_id(self) -> str:
+        return self[StudentInfoEntry.STUDENT_ID]
 
     @property
-    def phone(self):
-        ret = self.get(student_info_entry.PHONE)
-        return student_entry_phone(ret) if ret is not None else None
+    def name_pronunciation(self) -> str:
+        return self[StudentInfoEntry.NAME_PRONUNCIATION]
 
     @property
-    def emails(self):
-        return self[student_info_entry.EMAILS]
+    def language(self) -> Language:
+        return languages[self[StudentInfoEntry.LANGUAGE_ID]]
 
     @property
-    def notification_preferences(self):
-        return student_entry_notification_pref(self[student_info_entry.NOTIFICATION_PREFERENCES])
+    def phone(self) -> Union[StudentEntryPhone, None]:
+        ret = self.get(StudentInfoEntry.PHONE)
+        return StudentEntryPhone(ret) if ret is not None else None
 
-class student_entry_phone(dict_like_mapping):
+    @property
+    def email(self) -> Union[str, None]:
+        return self.get(StudentInfoEntry.EMAIL)
+
+    @property
+    def notification_preferences(self) -> StudentEntryNotificationPreference:
+        return StudentEntryNotificationPreference(self[StudentInfoEntry.NOTIFICATION_PREFERENCES])
+
+
+class StudentEntryPhone(DictLikeMapping):
     PHONE_NUMBER = "num"
     PHONE_CARRIER = "cr"
 
@@ -87,23 +100,24 @@ class student_entry_phone(dict_like_mapping):
         super().__init__(org_dict)
 
     @staticmethod
-    def init(num, carrier):
+    def init(num: str, carrier: str) -> StudentEntryPhone:
         d = {
-            student_entry_phone.PHONE_NUMBER: num,
-            student_entry_phone.PHONE_CARRIER: carrier
+            StudentEntryPhone.PHONE_NUMBER: num,
+            StudentEntryPhone.PHONE_CARRIER: carrier
         }
 
-        return student_entry_phone(d)
+        return StudentEntryPhone(d)
 
     @property
-    def phone_number(self):
-        return self[student_entry_phone.PHONE_NUMBER]
+    def phone_number(self) -> str:
+        return self[StudentEntryPhone.PHONE_NUMBER]
 
     @property
-    def phone_carrier(self):
-        return self[student_entry_phone.PHONE_CARRIER]
+    def phone_carrier(self) -> PhoneCarrier:
+        return PhoneCarriersManager.get_carrier_by_name(self[StudentEntryPhone.PHONE_CARRIER])
 
-class student_entry_notification_pref(dict_like_mapping):
+
+class StudentEntryNotificationPreference(DictLikeMapping):
     SMS = "sms"
     EMAIL = "email"
     MANUAL = "manual"
@@ -112,23 +126,23 @@ class student_entry_notification_pref(dict_like_mapping):
         super().__init__(org_dict)
 
     @staticmethod
-    def init(sms=False, email=False, manual=False):
+    def init(sms: bool = False, email: bool = False, manual: bool = False):
         d = {
-            student_entry_notification_pref.SMS: sms,
-            student_entry_notification_pref.EMAIL: email,
-            student_entry_notification_pref.MANUAL: manual
+            StudentEntryNotificationPreference.SMS: sms,
+            StudentEntryNotificationPreference.EMAIL: email,
+            StudentEntryNotificationPreference.MANUAL: manual
         }
 
-        return student_entry_notification_pref(d)
+        return StudentEntryNotificationPreference(d)
 
     @property
-    def sms(self):
-        return self[student_entry_notification_pref.SMS]
+    def sms(self) -> bool:
+        return self[StudentEntryNotificationPreference.SMS]
 
     @property
-    def email(self):
-        return self[student_entry_notification_pref.EMAIL]
+    def email(self) -> bool:
+        return self[StudentEntryNotificationPreference.EMAIL]
 
     @property
-    def manual(self):
-        return self[student_entry_notification_pref.MANUAL]
+    def manual(self) -> bool:
+        return self[StudentEntryNotificationPreference.MANUAL]

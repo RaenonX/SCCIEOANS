@@ -3,11 +3,10 @@
 {% import "bootstrap/utils.html" as utils %}
 
 {% block layout %}
-    <!--suppress ALL -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/portal.css') }}">
 {% endblock %}
 
-{% block titleex -%} Forget Password {%- endblock %}
+{% block titleex -%} Reset Password {%- endblock %}
 
 {% block content %}
     <div class="container">
@@ -22,23 +21,27 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="panel panel-danger set-center">
+                <div class="panel panel-warning set-center">
                     <div class="panel-heading">
-                        <span class="h3">Recovery Information</span>
+                        <span class="h3">Reset Password</span>
                     </div>
                     <div class="panel-body">
                         <form class="form-horizontal formEnterSubmit" method="post"
-                              action="{{ url_for("frontend_user.forget_password_issue_token") }}" id="submitRecovery">
+                              action="{{ url_for("frontend_user.reset_pw_post") }}" id="submitNewPassword">
+                            <input type="hidden" name="auid" value="{{ auid }}"/>
+                            <input type="hidden" name="token" value="{{ token }}"/>
+
                             <table class="field-table">
                                 <tbody>
                                 <tr>
-                                    <td>Your account email</td>
-                                    <td><input class="form-control" type="email" name="recovEmail" required/></td>
+                                    <td>New Password</td>
+                                    <td><input class="form-control" type="password" name="newPassword"
+                                               pattern="\w{6,20}" placeholder="Enter 6~20 characters." required/></td>
                                 </tr>
                                 <tr>
                                     <td></td>
                                     <td class="set-right">
-                                        <button type="submit" class="btn btn-danger" id="submit">Login</button>
+                                        <button type="submit" class="btn btn-warning" id="submit">Reset</button>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -50,3 +53,6 @@
         </div>
     </div>
 {%- endblock %}
+
+
+

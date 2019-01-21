@@ -1,7 +1,5 @@
 import os
-import time
 from multiprocessing.pool import ThreadPool
-import requests
 
 from flask import Flask
 from flask_appconfig import HerokuConfig
@@ -11,8 +9,10 @@ from flask_mail import Mail
 
 import blueprints
 
-sleep_preventer = ThreadPool()
+sleep_prevent = ThreadPool()
 
+
+# noinspection PyShadowingNames
 def create_app(with_error=True, configfile=None):
     app = Flask(__name__)
 
@@ -32,7 +32,7 @@ def create_app(with_error=True, configfile=None):
     app.register_blueprint(blueprints.frontend_user)
     
     # Configure app for flask-mail
-    app.config['MAIL_SERVER']='smtp.gmail.com'
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
     app.config['MAIL_USERNAME'] = os.environ["GM_EMAIL"]
     app.config['MAIL_PASSWORD'] = os.environ["GM_PASSWORD"]
@@ -50,13 +50,13 @@ def create_app(with_error=True, configfile=None):
     app.config["BOOTSTRAP_SERVE_LOCAL"] = True
     
     # Configure mail instance
-    mail = Mail(app)
-    app.config["MAIL_INSTANCE"] = mail
+    app.config["MAIL_INSTANCE"] = Mail(app)
     
     # Append nav bar to app
     blueprints.nav.init_app(app)
 
     return app
+
 
 if __name__ == "__main__":
     if os.environ["APP_ROOT_URL"] is None:

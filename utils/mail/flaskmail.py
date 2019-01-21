@@ -1,14 +1,13 @@
-from flask_mail import Mail, Message
+from flask_mail import current_app, Message
 
-class flaskmail:
-    def __init__(self, mail_instance):
-        self._mail_instance = mail_instance
 
-    def send_email(self, title, content, recipients):
+class FlaskMail:
+    @staticmethod
+    def send_html_mail(title, html_content, recipients):
         if not isinstance(recipients, list):
             recipients = [recipients]
 
         m = Message(title, recipients=recipients)
-        m.body = content;
+        m.html = html_content
 
-        self._mail_instance.send(m)
+        current_app.config["MAIL_INSTANCE"].send(m)

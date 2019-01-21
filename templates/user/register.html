@@ -3,13 +3,14 @@
 {% import "bootstrap/utils.html" as utils %}
 
 {% block layout %}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/portal.css') }}">
+    <!--suppress ALL -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/portal.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='layouts/user/register.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
 {% endblock %}
 
 {% block scriptsex %}
-<script src={{ url_for('static', filename='scripts/user/register.js') }} type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='scripts/user/register.js') }}" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
 {%- endblock %}
 
@@ -34,7 +35,8 @@
         </div>
     </div>
 
-    <form class="form-horizontal" method="post" action="{{ url_for("frontend_user.register_post") }}" id="submitNewUser">
+    <form class="form-horizontal formEnterSubmit" method="post" action="{{ url_for("frontend_user.register_post") }}"
+          id="submitNewUser">
         <input type="hidden" id="idType" name="idType_id">
 
         <input type="hidden" id="lang" name="lang_id" value="-1">
@@ -75,7 +77,11 @@
                                 </tr>
                                 <tr id="accountIDrecov">
                                     <td></td>
-                                    <td>Account ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a> to login, or click <a href="{{ url_for("frontend_user.forgot_password") }}">HERE</a> to get back your account.</td>
+                                    <td>Account ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a>
+                                        to login, or click <a
+                                                href="{{ url_for("frontend_user.forget_password") }}">HERE</a> to get
+                                        back your account.
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Password</td>
@@ -109,7 +115,11 @@
                                 </tr>
                                 <tr id="studentIDrecov">
                                     <td></td>
-                                    <td>Student ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a> to login, or click <a href="{{ url_for("frontend_user.forgot_password") }}">HERE</a> to get back your account.</td>
+                                    <td>Student ID already in use. Click <a href="{{ url_for("frontend_user.login") }}">HERE</a>
+                                        to login, or click <a
+                                                href="{{ url_for("frontend_user.forget_password") }}">HERE</a> to get
+                                        back your account.
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Recovery Email</td>
@@ -160,7 +170,7 @@
                                         <select class="selectpicker show-tick show-menu-arrow" data-live-search="true" data-live-normalize="true" id="carrierList" data-style="btn-warning" data-width="100%">
                                             <option selected data-tokens="-">Select a Phone Carrier</option>
                                             {% for phone_carrier in phone_carriers %}
-                                            <option data-tokens="{{ phone_carrier }}">{{ phone_carrier }}</option>
+                                                <option data-tokens="{{ phone_carrier.telecom_name }}">{{ phone_carrier.telecom_name }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
