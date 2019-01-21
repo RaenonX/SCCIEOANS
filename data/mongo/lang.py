@@ -1,8 +1,10 @@
-# noinspection PyShadowingBuiltins
+from dataclasses import dataclass
+
+
+@dataclass
 class Language:
-    def __init__(self, id, lang_name):
-        self.id = id
-        self.name = lang_name
+    id: int
+    name: str
 
 
 languages = [

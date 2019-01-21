@@ -16,7 +16,7 @@ def check_account_id_available(account_id=None):
     if account_id is None or not(6 <= len(account_id) <= 20):
         return "0"
 
-    return str(int(not account_manager.is_account_id_exists(account_id)))
+    return str(int(account_manager.is_account_id_exists(account_id)))
 
 
 @api.route("/api/studentid-exists/<student_id>", methods=["GET"])

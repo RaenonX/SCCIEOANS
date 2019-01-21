@@ -10,8 +10,7 @@ function onReady() {
     regMsg.hide();
     $("input[name=accountID]").focusout(function () {
         if ($(this).val() !== "") {
-            // noinspection JSUnresolvedFunction
-            // noinspection JSUnresolvedVariable
+            // noinspection JSUnresolvedVariable, JSUnresolvedFunction
             $.getJSON(Flask.url_for("api.check_account_id_available", {"account_id": $(this).val()}), function (json) {
                 let available = Boolean(Number(json));
 

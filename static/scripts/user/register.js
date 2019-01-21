@@ -36,8 +36,7 @@ function inputVerify(endpoint, param_name, input_id, parent_input_id, glyphicon_
             param_dict[param_name] = $(this).val();
 
             if ($(this).val() !== "") {
-                // noinspection JSUnresolvedFunction
-                // noinspection JSUnresolvedVariable
+                // noinspection JSUnresolvedVariable, JSUnresolvedFunction
                 $.getJSON(Flask.url_for(endpoint, param_dict), function (json) {
                     let available = Boolean(Number(json));
 

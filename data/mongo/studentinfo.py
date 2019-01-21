@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Union
 
-from data import Language, languages
 from utils.phone import PhoneCarrier, PhoneCarriersManager
 from .base import BaseMongoCollection, DictLikeMapping
+from .lang import Language, languages
 
 DATABASE_NAME = "accounts"
 
