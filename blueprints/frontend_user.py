@@ -13,15 +13,17 @@ frontend_user = Blueprint("frontend_user", __name__)
 @frontend_user.route("/user/register", methods=["GET"])
 @frontend_user.route("/user/register/", methods=["GET"])
 def register():
-    return render_template("user/register.html", 
-                           langs=data.languages, identityTypes=data.Identity.get_choices(), phone_carriers=utils.phone_carrier_dict.keys())
+    return render_template("user/register.html",
+                           langs=data.languages,
+                           identityTypes=data.Identity.get_choices(),
+                           phone_carriers=utils.PhoneCarriersManager.get_carrier_generator())
 
 
 @frontend_user.route("/user/register", methods=["POST"])
 def register_post():
     form = request.form
 
-    identity_enum = data.Identity(int(form["idType_id"]))
+    identity_enum: data.Identity = data.Identity(int(form["idType_id"]))
     
     account_id = form["accountID"]
     account_pw = form["accountPW"]
@@ -29,27 +31,30 @@ def register_post():
     recov_email = form["accountEmail"]
 
     if identity_enum == data.Identity.STUDENT:
-        student_id = form["studentID"]
+        student_id = int(form["studentID"])
 
         lang_id = data.languages[int(form["lang_id"]) - 1].id
 
-        notifSMS = bool(int(form["notifSMS"]))
+        notif_sms = bool(int(form["notifSMS"]))
         phone_num = none_if_empty_string(form["phoneNum"])
         carrier = none_if_empty_string(form["carrier"])
         if carrier == "-":
             carrier = None
 
-        notifEmail = bool(int(form["notifEmail"]))
+        notif_email = bool(int(form["notifEmail"]))
         stu_email = none_if_empty_string(form["studentEmail"])
 
-        notifManual = bool(int(form["notifManual"]))
+        notif_manual = bool(int(form["notifManual"]))
         pronunciation = none_if_empty_string(form["namePron"])
 
-        student_info_manager.create_student_info_entry(student_id, lang_id, stu_email, phone_num, carrier, pronunciation, notifSMS, notifEmail, notifManual)
-        
-        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_student(account_id, name, student_id, account_pw, recov_email).login_key
+        student_info_manager.create_student_info_entry(
+            student_id, [lang_id], stu_email, phone_num, carrier, pronunciation, notif_sms, notif_email, notif_manual)
+
+        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_student(
+            account_id, name, student_id, account_pw, recov_email).login_key
     else:
-        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_non_student(identity_enum, account_id, name, account_pw, recov_email).login_key
+        session[data.SESSION_LOGIN_KEY] = account_manager.create_account_non_student(
+            identity_enum, account_id, name, account_pw, recov_email).login_key
 
     flash(f"Registration succeed. Welcome, {name}!")
 
@@ -61,13 +66,14 @@ def register_post():
 def user_summary():
     if data.SESSION_LOGIN_KEY in session:
         lgn_key = session[data.SESSION_LOGIN_KEY]
-        acc = account_manager.get_account_by_login_key(lgn_key)
+        idt = account_manager.check_key_get_identity(lgn_key)
 
-        if acc is not None:
-            redir_portal_by_identity(acc.identity)
+        if idt is not None:
+            return redir_portal_by_identity(idt)
         else:
             del session[data.SESSION_LOGIN_KEY]
 
+    flash("You must login first.")
     return redirect(url_for("frontend_user.login"))
 
 
@@ -89,10 +95,10 @@ def login():
 def login_post():
     form = request.form
 
-    acctID = form["accountID"]
-    acctPW = form["accountPW"]
+    acct_id = form["accountID"]
+    acct_pw = form["accountPW"]
 
-    login_result = account_manager.login(acctID, acctPW)
+    login_result = account_manager.login(acct_id, acct_pw)
 
     if login_result.success:
         session[data.SESSION_LOGIN_KEY] = login_result.acc_entry.login_key
@@ -132,11 +138,11 @@ def forget_password_issue_token():
     else:
         entry = pw_lost_manager.create_and_get_entry(acc.recovery_email)
 
-        utils.FlaskMail.send_html_mail("Password recovery email from SCCIEOANS",
-                                       entry.get_html_content(os.environ["APP_ROOT_URL"] +
-                                                              url_for("frontend_user.reset_pw",
-                                                                      token=entry.token)),
-                                       acc.recovery_email)
+        utils.FlaskMail.send_html_mail(
+            "Password recovery email from SCCIEOANS",
+            entry.get_html_content(os.environ["APP_ROOT_URL"] + url_for("frontend_user.reset_pw",
+                                                                        token=entry.token)),
+            acc.recovery_email)
 
         flash(f"Recovery email has been sent.")
         return redirect(url_for("frontend.index"))
@@ -172,7 +178,7 @@ def reset_pw_post():
         return redirect(url_for("frontend_user.reset_pw", token=request.form["token"]))
 
 
-def redir_portal_by_identity(identity_enum, err_on_not_recognized=False):
+def redir_portal_by_identity(identity_enum: data.Identity, err_on_not_recognized=False):
     if identity_enum == data.Identity.STUDENT:
         return redirect(url_for("frontend_student.index"))
     elif identity_enum == data.Identity.ADVISOR:

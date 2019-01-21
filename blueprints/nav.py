@@ -1,6 +1,6 @@
-from flask import session, render_template, url_for, request
+from flask import session, render_template
 from flask_nav import Nav
-from flask_nav.elements import Navbar, View, Subgroup, Link, Text, Separator, RawTag
+from flask_nav.elements import Navbar, View, Subgroup, Separator
 
 from ._objs import *
 
@@ -10,17 +10,13 @@ nav_items = [
     View("SCC IE Office Appointment Notifying System", "frontend.index"),
     View("Student", "frontend_student.index"),
     View("Advisor", "frontend_advisor.index"),
-    View("Staff", "frontend_staff.index")
-    #Subgroup("資料查詢",
-    #         View("查詢精靈資料", "frontend.pokemon_profile_index"),
-    #         Separator(),
-    #         View("從精靈查食譜", "frontend.find_recipe_index"),
-    #         View("從食譜查精靈", "frontend.find_pokemon_index"),
-    #         View("從技能查精靈", "frontend.poke_skill_index")),
-    ]
+    View("Staff", "frontend_staff.index")]
 
-def append_dynamic(navitems):
-    to_append = []
+_render_template = render_template
+
+
+def append_dynamic():
+    to_append: list = []
 
     if data.SESSION_LOGIN_KEY in session:
         lgn_key = session[data.SESSION_LOGIN_KEY]
@@ -37,15 +33,15 @@ def append_dynamic(navitems):
     else:
         to_append.append(View("Login", "frontend_user.login"))
 
-    return navitems + to_append
+    return nav_items + to_append
 
-def register_element(nav, navitems):
-    navitems = append_dynamic(navitems)
+
+def register_element():
+    navitems = append_dynamic()
     return nav.register_element('main', Navbar(*navitems))
 
-_render_template = render_template
 
 def render_template(*args, **kwargs):
-    register_element(nav, nav_items)
+    register_element()
 
     return _render_template(*args, nav=nav.elems, **kwargs)

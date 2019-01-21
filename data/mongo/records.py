@@ -1,34 +1,36 @@
 from datetime import datetime
+from typing import Union
 
 from bson import ObjectId
-from pymongo import ASCENDING, DESCENDING
+from pymongo import DESCENDING
 
-from ex import EnumWithName
 from config import DatabaseConfig
-
-from .base import base_collection, dict_like_mapping
+from ex import EnumWithName
+from .base import BaseMongoCollection, DictLikeMapping
 
 DATABASE_NAME = "records"
+
 
 class AppointmentPurpose(EnumWithName):
     ACADEMIC_ADVISING = 1, "Academic Advising"
 
-class records_manager:
+
+class AppointmentsManager:
     def __init__(self, mongo_client):
-        self._scheduled = scheduled_records(mongo_client)
-        self._appointments = appointments_records(mongo_client)
+        self._scheduled = ScheduledRecords(mongo_client)
+        self._appointments = AppointmentsRecords(mongo_client)
 
-    def create_scheduled_appointment(self, student_id, purpose, advisor_id, scheduled_start, scheduled_end, notes=None):
-        self._scheduled.create_scheduled_appointment(student_id, purpose, advisor_id, scheduled_start, scheduled_end, notes)
+    def create_scheduled_appointment(
+            self, student_id: int, purpose: AppointmentPurpose, scheduled_start: datetime, scheduled_end: datetime,
+            advisor_id: Union[ObjectId, None] = None, notes: Union[str, None] = None) -> None:
+        self._scheduled.create_scheduled_appointment(
+            student_id, purpose, scheduled_start, scheduled_end, advisor_id, notes)
 
-    def create_walkin_appointment(self, student_id, purpose, advisor_id=None, notes=None):
+    def create_walkin_appointment(self, student_id: int, purpose: AppointmentPurpose,
+                                  advisor_id: Union[ObjectId, None] = None, notes: Union[str, None] = None) -> None:
         self._appointments.create_appointment(student_id, purpose, advisor_id, notes)
 
-    def check_in_from_scheduled(self, schedule_id):
-        """
-        Return:
-            True if succeed, otherwise, False.
-        """
+    def check_in_from_scheduled(self, schedule_id: ObjectId) -> bool:
         sc = self._scheduled.get_scheduled_appointment(schedule_id)
 
         if sc is None:
@@ -37,78 +39,79 @@ class records_manager:
         self._appointments.create_appointment_from_scheduled(sc)
         return True
 
-    def get_scheduled_appointment(self, schedule_id):
-        """
-        Return:
-            Return scheduled_entry if the document is present. Otherwise, return None.
-        """
+    def get_scheduled_appointment(self, schedule_id: ObjectId) -> Union[ScheduledEntry, None]:
         return self._scheduled.get_scheduled_appointment(schedule_id)
 
-    def get_waiting_appointments(self):
+    def get_waiting_appointments(self) -> Generator[AppointmentsEntry]:
         return self._appointments.get_waiting_appointments()
 
-    def get_ongoing_appointments(self):
+    def get_ongoing_appointments(self) -> Generator[AppointmentsEntry]:
         return self._appointments.get_ongoing_appointments()
 
-    def update_meeting_start(self, appointment_id):
+    def update_meeting_start(self, appointment_id: ObjectId) -> None:
         self._appointments.update_appointment_start(appointment_id)
 
-    def update_appointment_end(self, appointment_id):
+    def update_appointment_end(self, appointment_id: ObjectId) -> None:
         self._appointments.update_appointment_end(appointment_id)
 
-    def remove_appointment(self, appointment_id):
+    def remove_appointment(self, appointment_id: ObjectId) -> None:
         self._appointments.remove_record(appointment_id)
 
-class scheduled_records(base_collection):
+
+class ScheduledRecords(BaseMongoCollection):
     COLLECTION_NAME = "scheduled"
 
     def __init__(self, mongo_client):
-        super().__init__(mongo_client, DATABASE_NAME, scheduled_records.COLLECTION_NAME)
-        self.create_index(scheduled_entry.MEETING_START, expireAfterSeconds=DatabaseConfig.SCHEDULED_APPOINTMENT_EXPIRATION_MINS * 60)
+        super().__init__(mongo_client, DATABASE_NAME, ScheduledRecords.COLLECTION_NAME)
+        self.create_index(ScheduledEntry.MEETING_START,
+                          expireAfterSeconds=DatabaseConfig.SCHEDULED_APPOINTMENT_EXPIRATION_MINS * 60)
 
-    def create_scheduled_appointment(self, student_id, purpose, advisor_id, scheduled_start, scheduled_end, notes=None):
-        self.insert_one(scheduled_entry.init(student_id, purpose, advisor_id, scheduled_start, scheduled_end, notes))
+    def create_scheduled_appointment(
+            self, student_id: int, purpose: AppointmentPurpose, scheduled_start: datetime, scheduled_end: datetime,
+            advisor_id: Union[ObjectId, None] = None, notes: str = None) -> None:
+        self.insert_one(ScheduledEntry.init(student_id, purpose, advisor_id, scheduled_start, scheduled_end, notes))
 
-    def get_scheduled_appointment(self, schedule_id):
-        """
-        Return:
-            Return scheduled_entry if the document is present. Otherwise, return None.
-        """
-        ret = self.find_one({ scheduled_entry.ID: schedule_id })
-        return scheduled_entry(ret) if ret is not None else None
+    def get_scheduled_appointment(self, schedule_id) -> Union[ScheduledEntry, None]:
+        return ScheduledEntry.get_none(self.find_one({ScheduledEntry.ID: schedule_id}))
 
-class appointments_records(base_collection):
+
+class AppointmentsRecords(BaseMongoCollection):
     COLLECTION_NAME = "appointments"
 
     def __init__(self, mongo_client):
-        super().__init__(mongo_client, DATABASE_NAME, appointments_records.COLLECTION_NAME)
+        super().__init__(mongo_client, DATABASE_NAME, AppointmentsRecords.COLLECTION_NAME)
 
-    def create_appointment(self, student_id, purpose, advisor_id=None, notes=None):
-        self.insert_one(appointments_entry.init(student_id, purpose, advisor_id, notes))
+    def create_appointment(
+            self, student_id: int, purpose: AppointmentPurpose,
+            advisor_id: Union[ObjectId, None] = None, notes: Union[str, None] = None) -> None:
+        self.insert_one(AppointmentsEntry.init(student_id, purpose, advisor_id, notes))
 
-    def create_appointment_from_scheduled(self, schedule_record):
-        self.insert_one(appointments_entry.init_from_scheduled(schedule_record))
+    def create_appointment_from_scheduled(self, scheduled_entry: ScheduledEntry) -> None:
+        self.insert_one(AppointmentsEntry.init_from_scheduled(scheduled_entry))
 
-    def get_waiting_appointments(self):
-        return self.find({ 
-            appointments_entry.APPOINTMENT_START: { "$exists": False }, 
-            appointments_entry.APPOINTMENT_END: { "$exists": False } }).sort([scheduled_entry.ID, DESCENDING])
+    def get_waiting_appointments(self) -> Generator[AppointmentsEntry]:
+        return (AppointmentsEntry(x) for x in self.find({
+            AppointmentsEntry.APPOINTMENT_START: {"$exists": False},
+            AppointmentsEntry.APPOINTMENT_END: {"$exists": False}}).sort([ScheduledEntry.ID, DESCENDING]))
 
-    def get_ongoing_appointments(self):
-        return self.find({ 
-            appointments_entry.APPOINTMENT_START: { "$exists": True }, 
-            appointments_entry.APPOINTMENT_END: { "$exists": False } }).sort([scheduled_entry.ID, DESCENDING])
+    def get_ongoing_appointments(self) -> Generator[AppointmentsEntry]:
+        return (AppointmentsEntry(x) for x in self.find({
+            AppointmentsEntry.APPOINTMENT_START: {"$exists": True},
+            AppointmentsEntry.APPOINTMENT_END: {"$exists": False}}).sort([ScheduledEntry.ID, DESCENDING]))
 
-    def update_appointment_start(self, appointment_id):
-        self.update_one({ appointments_entry.ID: appointment_id }, { appointments_entry.APPOINTMENT_START: datetime.now() }, True)
+    def update_appointment_start(self, appointment_id: ObjectId) -> None:
+        self.update_one(
+            {AppointmentsEntry.ID: appointment_id}, {AppointmentsEntry.APPOINTMENT_START: datetime.now()}, True)
 
-    def update_appointment_end(self, appointment_id):
-        self.update_one({ appointments_entry.ID: appointment_id }, { appointments_entry.APPOINTMENT_END: datetime.now() }, True)
+    def update_appointment_end(self, appointment_id: ObjectId) -> None:
+        self.update_one(
+            {AppointmentsEntry.ID: appointment_id}, {AppointmentsEntry.APPOINTMENT_END: datetime.now()}, True)
 
-    def remove_record(self, data_id):
-        self.delete_one({ appointments_entry.ID: data_id })
+    def remove_record(self, appointment_id: ObjectId) -> None:
+        self.delete_one({AppointmentsEntry.ID: appointment_id})
 
-class scheduled_entry(dict_like_mapping):
+
+class ScheduledEntry(DictLikeMapping):
     ID = "_id"
     
     MEETING_START = "m_start"
@@ -122,57 +125,61 @@ class scheduled_entry(dict_like_mapping):
         super().__init__(org_dict)
 
     @staticmethod
-    def init(student_id, purpose, advisor_id, meeting_start, meeting_end, notes=None):
+    def init(student_id: int, purpose: AppointmentPurpose, advisor_id: Union[ObjectId, None],
+             meeting_start: datetime, meeting_end: datetime, notes: Union[str, None] = None) -> ScheduledEntry:
         d = {
-            scheduled_entry.MEETING_START: meeting_start,
-            scheduled_entry.MEETING_END: meeting_end,
-            scheduled_entry.STUDENT_ID: student_id,
-            scheduled_entry.PURPOSE: purpose,
-            scheduled_entry.ADVISOR_ID: advisor_id
+            ScheduledEntry.MEETING_START: meeting_start,
+            ScheduledEntry.MEETING_END: meeting_end,
+            ScheduledEntry.STUDENT_ID: student_id,
+            ScheduledEntry.PURPOSE: purpose
         }
 
-        if notes is not None:
-            d[scheduled_entry.NOTES] = notes
+        if advisor_id is not None:
+            d[ScheduledEntry.ADVISOR_ID] = advisor_id
 
-        return scheduled_entry(d)
+        if notes is not None:
+            d[ScheduledEntry.NOTES] = notes
+
+        return ScheduledEntry(d)
         
     @property
-    def id(self):
-        return self[appointments_entry.ID]
+    def id(self) -> ObjectId:
+        return self[AppointmentsEntry.ID]
 
     @property
-    def scheduled_timestamp(self):
+    def scheduled_timestamp(self) -> datetime:
         return ObjectId(self.id).generation_time
 
     @property
-    def meeting_start(self):
-        return self[scheduled_entry.MEETING_START]
+    def meeting_start(self) -> datetime:
+        return self[ScheduledEntry.MEETING_START]
     
     @property
-    def meeting_end(self):
-        return self[scheduled_entry.MEETING_END]
+    def meeting_end(self) -> datetime:
+        return self[ScheduledEntry.MEETING_END]
     
     @property
-    def student_id(self):
-        return self[scheduled_entry.STUDENT_ID]
+    def student_id(self) -> int:
+        return self[ScheduledEntry.STUDENT_ID]
     
     @property
-    def purpose(self):
-        return AppointmentPurpose(self[scheduled_entry.PURPOSE])
+    def purpose(self) -> AppointmentPurpose:
+        return AppointmentPurpose(self[ScheduledEntry.PURPOSE])
     
     @property
-    def advisor_id(self):
-        return self[scheduled_entry.ADVISOR_ID]
+    def advisor_id(self) -> ObjectId:
+        return self[ScheduledEntry.ADVISOR_ID]
 
     @property
-    def advisor_specified(self):
-        return scheduled_entry.ADVISOR_ID in self
+    def advisor_specified(self) -> bool:
+        return ScheduledEntry.ADVISOR_ID in self and self[ScheduledEntry.ADVISOR_ID] is not None
 
     @property
-    def notes(self):
-        return self[scheduled_entry.NOTES]
+    def notes(self) -> str:
+        return self.get(ScheduledEntry.NOTES, "")
 
-class appointments_entry(dict_like_mapping):
+
+class AppointmentsEntry(DictLikeMapping):
     ID = "_id"
     
     SCHEDULED = "scheduled"
@@ -188,108 +195,112 @@ class appointments_entry(dict_like_mapping):
         super().__init__(org_dict)
 
     @staticmethod
-    def init(sid, purpose, advisor_id=None, notes=None, scheduled=None):
+    def init(sid: int, purpose: AppointmentPurpose, advisor_id: Union[ObjectId, None] = None,
+             notes: Union[str, None] = None, scheduled: Union[ScheduledEntry, None] = None) -> AppointmentsEntry:
         d = {
-            appointments_entry.STUDENT_ID: sid,
-            appointments_entry.PURPOSE: purpose,
-            appointments_entry.NOTES: notes
+            AppointmentsEntry.STUDENT_ID: sid,
+            AppointmentsEntry.PURPOSE: purpose,
+            AppointmentsEntry.NOTES: notes
         }
 
-        if advisor is not None:
-            d[appointments_entry.ADVISOR_ID] = advisor_id
+        if advisor_id is not None:
+            d[AppointmentsEntry.ADVISOR_ID] = advisor_id
 
         if scheduled is not None:
-            d[appointments_entry.SCHEDULED] = scheduled
+            d[AppointmentsEntry.SCHEDULED] = scheduled
 
-        return appointments_entry(d)
+        return AppointmentsEntry(d)
 
     @staticmethod
-    def init_from_scheduled(scheduled):
+    def init_from_scheduled(scheduled: ScheduledEntry) -> AppointmentsEntry:
         d = {
-            appointments_entry.ADVISOR_ID: scheduled.advisor_id,
-            appointments_entry.STUDENT_ID: scheduled.student_id,
-            appointments_entry.PURPOSE: scheduled.purpose,
-            appointments_entry.NOTES: scheduled.notes,
-            appointments_entry.SCHEDULED: appointments_entry_schedule.init(
+            AppointmentsEntry.ADVISOR_ID: scheduled.advisor_id,
+            AppointmentsEntry.STUDENT_ID: scheduled.student_id,
+            AppointmentsEntry.PURPOSE: scheduled.purpose,
+            AppointmentsEntry.NOTES: scheduled.notes,
+            AppointmentsEntry.SCHEDULED: AppointmentsEntrySchedule.init(
                 scheduled.meeting_start, scheduled.meeting_end, scheduled.scheduled_timestamp)
         }
 
-        return appointments_entry(d)
+        return AppointmentsEntry(d)
 
     @property
-    def id(self):
-        return self[appointments_entry.ID]
+    def id(self) -> ObjectId:
+        return self[AppointmentsEntry.ID]
 
     @property
-    def scheduled(self):
-        if appointments_entry.SCHEDULED in self:
-            return appointments_entry_schedule(self[appointments_entry.SCHEDULED])
+    def scheduled(self) -> Union[AppointmentsEntrySchedule, None]:
+        if AppointmentsEntry.SCHEDULED in self:
+            return AppointmentsEntrySchedule(self[AppointmentsEntry.SCHEDULED])
         else:
             return None
 
     @property
-    def lined_up_timestamp(self):
+    def lined_up_timestamp(self) -> datetime:
         return ObjectId(self.id).generation_time
 
     @property
-    def meeting_start(self):
-        return self.get(appointments_entry.APPOINTMENT_START)
+    def meeting_start(self) -> Union[datetime, None]:
+        return self.get(AppointmentsEntry.APPOINTMENT_START)
     
     @property
-    def meeting_end(self):
-        return self.get(appointments_entry.APPOINTMENT_END)
+    def meeting_end(self) -> Union[datetime, None]:
+        return self.get(AppointmentsEntry.APPOINTMENT_END)
     
     @property
-    def student_id(self):
-        return self[appointments_entry.STUDENT_ID]
+    def student_id(self) -> int:
+        return self[AppointmentsEntry.STUDENT_ID]
     
     @property
-    def purpose(self):
-        return AppointmentPurpose(self[appointments_entry.PURPOSE])
+    def purpose(self) -> AppointmentPurpose:
+        return AppointmentPurpose(self[AppointmentsEntry.PURPOSE])
     
     @property
-    def advisor_id(self):
-        return self[appointments_entry.ADVISOR_ID]
+    def advisor_id(self) -> Union[ObjectId, None]:
+        return self[AppointmentsEntry.ADVISOR_ID]
 
     @property
-    def advisor_specified(self):
-        return appointments_entry.ADVISOR_ID in self
+    def advisor_specified(self) -> bool:
+        return AppointmentsEntry.ADVISOR_ID in self and self[AppointmentsEntry.ADVISOR_ID] is not None
 
     @property
-    def notes(self):
-        return self[appointments_entry.NOTES]
+    def notes(self) -> str:
+        return self[AppointmentsEntry.NOTES]
 
-class appointments_entry_schedule(dict_like_mapping):
+
+class AppointmentsEntrySchedule(DictLikeMapping):
     SCHEDULED_TS = "s_ts"
     SCHEDULED_START = "s_start"
     SCHEDULED_END = "s_end"
 
     def __init__(self, org_dict):
-        if appointments_entry_schedule.SCHEDULED_TS not in org_dict:
-            org_dict[appointments_entry_schedule.SCHEDULED_TS] = datetime.now()
+        if AppointmentsEntrySchedule.SCHEDULED_TS not in org_dict:
+            org_dict[AppointmentsEntrySchedule.SCHEDULED_TS] = datetime.now()
 
         super().__init__(org_dict)
 
     @staticmethod
-    def init(schedule_start, schedule_end, scheduled_timestamp=None):
+    def init(
+            schedule_start: datetime, schedule_end: datetime,
+            scheduled_timestamp: Union[datetime, None] = None) -> AppointmentsEntrySchedule:
         d = {
-            appointments_entry_schedule.SCHEDULED_START: schedule_start,
-            appointments_entry_schedule.SCHEDULED_END: schedule_end
+            AppointmentsEntrySchedule.SCHEDULED_START: schedule_start,
+            AppointmentsEntrySchedule.SCHEDULED_END: schedule_end
         }
 
         if scheduled_timestamp is not None:
-            d[appointments_entry_schedule.SCHEDULED_TS] = scheduled_timestamp
+            d[AppointmentsEntrySchedule.SCHEDULED_TS] = scheduled_timestamp
 
-        return appointments_entry_schedule(d)
-
-    @property
-    def start(self):
-        return self[appointments_entry_schedule.SCHEDULED_START]
+        return AppointmentsEntrySchedule(d)
 
     @property
-    def end(self):
-        return self[appointments_entry_schedule.SCHEDULED_END]
+    def start(self) -> datetime:
+        return self[AppointmentsEntrySchedule.SCHEDULED_START]
 
     @property
-    def timestamp(self):
-        return self[appointments_entry_schedule.SCHEDULED_TS]
+    def end(self) -> datetime:
+        return self[AppointmentsEntrySchedule.SCHEDULED_END]
+
+    @property
+    def timestamp(self) -> Union[datetime, None]:
+        return self.get(AppointmentsEntrySchedule.SCHEDULED_TS)

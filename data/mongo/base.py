@@ -1,11 +1,12 @@
 from collections import MutableMapping
+from typing import Union
 
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 
 
-class base_collection(Collection):
-    def __init__(self, mongo_client, db_name, col_name, cache_keys=None):
+class BaseMongoCollection(Collection):
+    def __init__(self, mongo_client, db_name: str, col_name: str, cache_keys: Union[dict, None] = None):
         super().__init__(mongo_client.get_database(db_name), col_name)
         self._cache = {}
         if cache_keys is not None:
@@ -29,7 +30,7 @@ class base_collection(Collection):
             self.init_cache(cache_key)
 
         if item_key not in self._cache[cache_key]:
-            data = result_acquire_method({ cache_key: item_key })
+            data = result_acquire_method({cache_key: item_key})
 
             if isinstance(data, Cursor):
                 data = list(data)
@@ -38,7 +39,8 @@ class base_collection(Collection):
 
         return self._cache[cache_key][item_key]
 
-class dict_like_mapping(MutableMapping):
+
+class DictLikeMapping(MutableMapping):
     @classmethod
     def get_none(cls, org_dict):
         return None if org_dict is None else cls(org_dict)

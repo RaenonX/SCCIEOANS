@@ -12,11 +12,7 @@ import blueprints
 sleep_prevent = ThreadPool()
 
 
-# TODO: Rename all classes
-# TODO: Check all warnings
-# TODO: Check all get_none syntaxes in data module
-
-
+# noinspection PyShadowingNames
 def create_app(with_error=True, configfile=None):
     app = Flask(__name__)
 

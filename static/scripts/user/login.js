@@ -10,8 +10,10 @@ function onReady() {
     regMsg.hide();
     $("input[name=accountID]").focusout(function () {
         if ($(this).val() !== "") {
+            // noinspection JSUnresolvedFunction
+            // noinspection JSUnresolvedVariable
             $.getJSON(Flask.url_for("api.check_account_id_available", {"account_id": $(this).val()}), function (json) {
-                var available = Boolean(Number(json));
+                let available = Boolean(Number(json));
 
                 icon.removeClass("glyphicon-user");
 

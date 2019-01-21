@@ -1,3 +1,4 @@
+bson
 flask-appconfig
 Flask-Bootstrap
 flask-nav

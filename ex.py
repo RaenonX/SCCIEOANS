@@ -1,7 +1,9 @@
 from enum import IntEnum
 
+
 class EnumWithName(IntEnum):
     def __new__(cls, value, name):
+        # noinspection PyArgumentList
         member = int.__new__(cls, value)
         member._value_ = value
         member._name = name
@@ -34,6 +36,7 @@ class EnumWithName(IntEnum):
     @classmethod
     def get_choices(cls):
         return [(int(s), str(s)) for s in cls]
+
 
 def none_if_empty_string(s):
     return None if s == "" else s

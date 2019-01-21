@@ -266,3 +266,5 @@ __pycache__/
 /utils/email/*.json
 /venv
 /obj
+/.vs
+/bin

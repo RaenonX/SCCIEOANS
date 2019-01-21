@@ -31,13 +31,15 @@ function inputVerify(endpoint, param_name, input_id, parent_input_id, glyphicon_
 
     $("input[name=" + input_id + "]").focusout(function () {
         if ($(this).is(":visible") && $(this).not(":hidden")) {
-            var elem = $("#" + glyphicon_id);
-            var param_dict = {};
+            let elem = $("#" + glyphicon_id);
+            let param_dict = {};
             param_dict[param_name] = $(this).val();
 
             if ($(this).val() !== "") {
+                // noinspection JSUnresolvedFunction
+                // noinspection JSUnresolvedVariable
                 $.getJSON(Flask.url_for(endpoint, param_dict), function (json) {
-                    var available = Boolean(Number(json));
+                    let available = Boolean(Number(json));
 
                     elem.removeClass("glyphicon-user");
 
@@ -62,7 +64,7 @@ function inputVerify(endpoint, param_name, input_id, parent_input_id, glyphicon_
 }
 
 function changeSubmitButtonEnabled(enabled) {
-    var submitBtn = $("#submit");
+    let submitBtn = $("#submit");
 
     if (enabled) {
         submitBtn.removeAttr("disabled");
@@ -81,6 +83,7 @@ function onIdTypesClicked(event) {
     $("#idType").val(event.target.value);
     $(".after-usertype").show();
 
+    // noinspection EqualityComparisonWithCoercionJS
     if ($(event.target).val() == 1) {
         $(".student-only").show();
         $("input[name=studentID]").attr("required", "required"); 
@@ -95,7 +98,7 @@ function onNotifPrefClicked(event) {
     let input_obj = $("#" + target.data("input"));
     let new_bool = !Boolean(Number(input_obj.val()));
 
-    input_obj.val(Number(new_bool))
+    input_obj.val(Number(new_bool));
 
     if (new_bool) {
         target.removeClass("btn-danger").addClass("btn-success");
@@ -114,13 +117,16 @@ function onFormSubmit() {
 
     let success = true;
 
+    // noinspection EqualityComparisonWithCoercionJS
     if ($("#idType").val() == 1) {
+        // noinspection EqualityComparisonWithCoercionJS
         if ($("#notifSMS").val() == 1) {
             if (!$("input[name=phoneNum]").val()) {
                 $("#phone-num").addClass("has-error");
                 missing.push("Phone Number");
                 success = false;
             }
+            // noinspection EqualityComparisonWithCoercionJS
             if ($("#carrier").val() == "-") {
                 missing.push("Phone Carrier");
                 $("#phone-carrier").addClass("has-error");
@@ -128,6 +134,7 @@ function onFormSubmit() {
             }
         }
 
+        // noinspection EqualityComparisonWithCoercionJS
         if ($("#notifEmail").val() == 1) {
             if (!$("input[name=studentEmail]").val()) {
                 missing.push("Email");
@@ -136,6 +143,7 @@ function onFormSubmit() {
             }
         }
 
+        // noinspection EqualityComparisonWithCoercionJS
         if ($("#notifManual").val() == 1) {
             if (!$("input[name=namePron]").val()) {
                 missing.push("Name Pronuncitation");
@@ -144,6 +152,7 @@ function onFormSubmit() {
             }
         }
 
+        // noinspection EqualityComparisonWithCoercionJS
         if ($("#lang").val() == -1) {
             missing.push("Language");
             $("#lang-parent").addClass("has-error");
