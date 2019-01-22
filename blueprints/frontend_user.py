@@ -1,3 +1,6 @@
+from functools import wraps
+from urllib.parse import urlparse, urljoin
+
 from flask import (
     Blueprint, request, redirect, url_for, session, flash
 )
@@ -8,6 +11,83 @@ from ._objs import *
 from .nav import render_template
 
 frontend_user = Blueprint("frontend_user", __name__)
+
+
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+
+def require_login(_func=None, *, prev_endpoint=None, **kwargs_url):
+    def func_decorator(func):
+        @wraps(func)
+        def func_wrapper(*args):
+            if data.SESSION_LOGIN_KEY in session:
+                return func(*args)
+            else:
+                if prev_endpoint is None:
+                    return redirect(url_for("frontend_user.login"))
+                else:
+                    return redirect(url_for("frontend_user.login", prev=url_for(prev_endpoint, **kwargs_url)))
+
+        return func_wrapper
+
+    if _func is not None:
+        return func_decorator(_func)
+
+    return func_decorator
+
+
+@frontend_user.route("/user/login", methods=["GET"])
+@frontend_user.route("/user/login/", methods=["GET"])
+def login():
+    prev = request.args.get('prev')
+
+    if data.SESSION_LOGIN_KEY in session:
+        idt_type = account_manager.check_key_get_identity(session[data.SESSION_LOGIN_KEY])
+
+        if idt_type is not None:
+            return redir_portal_by_identity(idt_type)
+        else:
+            del session[data.SESSION_LOGIN_KEY]
+
+    return render_template("user/login.html",
+                           prev=prev if is_safe_url(prev) and prev != "" else url_for("frontend.index"))
+
+
+@frontend_user.route("/user/login", methods=["POST"])
+def login_post():
+    form = request.form
+
+    prev_endpoint = form.get("prevEndpoint")
+
+    acct_id = form["accountID"]
+    acct_pw = form["accountPW"]
+
+    login_result = account_manager.login(acct_id, acct_pw)
+
+    if login_result.success:
+        session[data.SESSION_LOGIN_KEY] = login_result.account_entry.login_key
+
+        if prev_endpoint is None or none_if_empty_string(prev_endpoint) is None:
+            flash(f"Welcome, {login_result.account_entry.name}!")
+            return redir_portal_by_identity(login_result.account_entry.identity)
+        else:
+            return redirect(url_for(prev_endpoint))
+    else:
+        flash("Either account ID or the password is incorrect.", category="danger")
+        return redirect(url_for("frontend_user.login"))
+
+
+@frontend_user.route("/user/logout", methods=["GET"])
+@frontend_user.route("/user/logout/", methods=["GET"])
+def logout():
+    if data.SESSION_LOGIN_KEY in session:
+        del session[data.SESSION_LOGIN_KEY]
+
+    flash("Successfully logged out.")
+    return redirect(url_for("frontend.index"))
 
 
 @frontend_user.route("/user/register", methods=["GET"])
@@ -24,7 +104,7 @@ def register_post():
     form = request.form
 
     identity_enum: data.Identity = data.Identity(int(form["idType_id"]))
-    
+
     account_id = form["accountID"]
     account_pw = form["accountPW"]
     name = form["accountName"]
@@ -75,49 +155,6 @@ def user_summary():
 
     flash("You must login first.")
     return redirect(url_for("frontend_user.login"))
-
-
-@frontend_user.route("/user/login", methods=["GET"])
-@frontend_user.route("/user/login/", methods=["GET"])
-def login():
-    if data.SESSION_LOGIN_KEY in session:
-        idt_type = account_manager.check_key_get_identity(session[data.SESSION_LOGIN_KEY])
-
-        if idt_type is not None:
-            return redir_portal_by_identity(idt_type)
-        else:
-            del session[data.SESSION_LOGIN_KEY]
-
-    return render_template("user/login.html")
-
-
-@frontend_user.route("/user/login", methods=["POST"])
-def login_post():
-    form = request.form
-
-    acct_id = form["accountID"]
-    acct_pw = form["accountPW"]
-
-    login_result = account_manager.login(acct_id, acct_pw)
-
-    if login_result.success:
-        session[data.SESSION_LOGIN_KEY] = login_result.account_entry.login_key
-
-        flash(f"Welcome, {login_result.account_entry.name}!")
-        return redir_portal_by_identity(login_result.account_entry.identity)
-    else:
-        flash("Either account ID or the password is incorrect.", category="danger")
-        return redirect(url_for("frontend_user.login"))
-
-
-@frontend_user.route("/user/logout", methods=["GET"])
-@frontend_user.route("/user/logout/", methods=["GET"])
-def logout():
-    if data.SESSION_LOGIN_KEY in session:
-        del session[data.SESSION_LOGIN_KEY]
-
-    flash("Successfully logged out.")
-    return redirect(url_for("frontend.index"))
 
 
 @frontend_user.route("/user/recover", methods=["GET"])
