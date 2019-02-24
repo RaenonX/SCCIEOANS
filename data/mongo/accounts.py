@@ -179,17 +179,20 @@ class PwLostTokenManager(BaseMongoCollection):
         self.create_index(PwLostTokenEntry.LINKED_ACCOUNT_UNIQUE_ID, unique=True)
         self._account_mgr = AccountManager(mongo_client)
 
-    def create_and_get_entry(self, recovery_email: str) -> Union[PwLostTokenEntry, None]:
+    def create_and_get_entry_by_acct(self, acc_entry: AccountEntry) -> PwLostTokenEntry:
+        return PwLostTokenEntry(self.find_one_and_update(
+            {PwLostTokenEntry.LINKED_ACCOUNT_UNIQUE_ID: acc_entry.unique_id},
+            {"$set": {
+                PwLostTokenEntry.CREATED_TIME: datetime.now(),
+                PwLostTokenEntry.TOKEN: PwLostTokenManager.generate_token()}},
+            upsert=True,
+            return_document=pymongo.ReturnDocument.AFTER))
+
+    def create_and_get_entry_by_recov_email(self, recovery_email: str) -> Union[PwLostTokenEntry, None]:
         acc_entry = self._account_mgr.get_account_by_recovery_email(recovery_email)
 
         if acc_entry is not None:
-            return PwLostTokenEntry(self.find_one_and_update(
-                {PwLostTokenEntry.LINKED_ACCOUNT_UNIQUE_ID: acc_entry.unique_id},
-                {"$set": {
-                    PwLostTokenEntry.CREATED_TIME: datetime.now(),
-                    PwLostTokenEntry.TOKEN: PwLostTokenManager.generate_token()}},
-                upsert=True,
-                return_document=pymongo.ReturnDocument.AFTER))
+            return self.create_and_get_entry_by_acct(acc_entry)
         else:
             return None
 

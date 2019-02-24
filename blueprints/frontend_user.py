@@ -53,14 +53,14 @@ def login():
             del session[data.SESSION_LOGIN_KEY]
 
     return render_template("user/login.html",
-                           prev=prev if is_safe_url(prev) and prev != "" else url_for("frontend.index"))
+                           prev_url=prev if is_safe_url(prev) and prev != "" else url_for("frontend.index"))
 
 
 @frontend_user.route("/user/login", methods=["POST"])
 def login_post():
     form = request.form
 
-    prev_endpoint = form.get("prevEndpoint")
+    prev_url = form.get("prevUrl")
 
     acct_id = form["accountID"]
     acct_pw = form["accountPW"]
@@ -70,11 +70,11 @@ def login_post():
     if login_result.success:
         session[data.SESSION_LOGIN_KEY] = login_result.account_entry.login_key
 
-        if prev_endpoint is None or none_if_empty_string(prev_endpoint) is None:
+        if prev_url is None or none_if_empty_string(prev_url) is None:
             flash(f"Welcome, {login_result.account_entry.name}!")
             return redir_portal_by_identity(login_result.account_entry.identity)
         else:
-            return redirect(url_for(prev_endpoint))
+            return redirect(prev_url)
     else:
         flash("Either account ID or the password is incorrect.", category="danger")
         return redirect(url_for("frontend_user.login"))
@@ -173,7 +173,7 @@ def forget_password_issue_token():
         flash("Account not exists.")
         return redirect(url_for("frontend_user.forget_password"))
     else:
-        entry = pw_lost_manager.create_and_get_entry(acc.recovery_email)
+        entry = pw_lost_manager.create_and_get_entry_by_recov_email(acc.recovery_email)
 
         utils.FlaskMail.send_html_mail(
             "Password recovery email from SCCIEOANS",
@@ -188,10 +188,9 @@ def forget_password_issue_token():
 @frontend_user.route("/user/pw-reset/<token>", methods=["GET"])
 @frontend_user.route("/user/pw-reset/", methods=["GET"])
 @frontend_user.route("/user/pw-reset", methods=["GET"])
-def reset_pw(token):
+def reset_pw(token=None):
     if token is None:
-        raise NotImplementedError()
-        # TODO: Verify login key to get into this page
+        return render_reset_pw_login()
     else:
         entry = pw_lost_manager.get_entry(token)
 
@@ -199,9 +198,7 @@ def reset_pw(token):
             flash("Token is invalid. The password resetting link might expired.")
             return redirect(url_for("frontend.index"))
         else:
-            return render_template("user/reset_pw.html",
-                                   auid=entry.linked_account_unique_id,
-                                   token=entry.token)
+            return render_reset_pw(entry)
 
 
 @frontend_user.route("/user/pw-reset", methods=["POST"])
@@ -228,3 +225,18 @@ def redir_portal_by_identity(identity_enum: data.Identity, err_on_not_recognized
         else:
             flash(f"Identity not recognized: {identity_enum}")
             return redirect(url_for("frontend.index"))
+
+
+@require_login(prev_endpoint="frontend_user.reset_pw")
+def render_reset_pw_login():
+    lgn_key = session[data.SESSION_LOGIN_KEY]
+    acct = account_manager.get_account_by_login_key(lgn_key)
+    entry = pw_lost_manager.create_and_get_entry_by_acct(acct)
+
+    return render_reset_pw(entry)
+
+
+def render_reset_pw(pw_lost_entry: data.PwLostTokenEntry):
+    return render_template("user/reset_pw.html",
+                           auid=pw_lost_entry.linked_account_unique_id,
+                           token=pw_lost_entry.token)

@@ -31,7 +31,7 @@
                 <div class="panel-body">
                     <form class="form-horizontal formEnterSubmit" method="post"
                           action="{{ url_for("frontend_user.login_post") }}" id="submitLogin">
-                        <input type="hidden" value="{{ prev_endpoint }}" id="prevEndpoint"/>
+                        <input type="hidden" value="{{ prev_url }}" name="prevUrl"/>
 
                         <table class="field-table">
                             <tbody>
